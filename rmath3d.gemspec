@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["vaiorabbit@gmail.com"]
   gem.description   = %q{Ruby Math Module for 3D Applications}
   gem.summary       = %q{Ruby Math Module for 3D Applications}
-  gem.homepage      = "http://code.google.com/p/ruby-math-3d/"
+  gem.homepage      = "https://github.com/vaiorabbit/rmath3d"
 
   gem.files         = `git ls-files`.split($/)
   gem.extensions    = ['ext/rmath3d/extconf.rb']

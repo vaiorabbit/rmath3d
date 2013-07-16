@@ -1,7 +1,6 @@
 # Check preloading (-rRMath.so or -rRMath.rb)
-gem 'rmath3d'
 require 'rmath3d/rmath3d'
-#require 'rmath3d/rmath3d_plain.rb'
+# require 'rmath3d/rmath3d_plain'
 include RMath3D
 
 # Test::Unit
