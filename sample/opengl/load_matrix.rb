@@ -1,4 +1,3 @@
-gem 'rmath3d'
 # require 'rmath3d/rmath3d_plain'
 require 'rmath3d/rmath3d'
 include RMath3D
