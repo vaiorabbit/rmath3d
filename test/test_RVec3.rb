@@ -1,5 +1,5 @@
-require 'test/unit'
-class TC_RVec3 < Test::Unit::TestCase
+require 'minitest/autorun'
+class TC_RVec3 < Minitest::Test
   def setup
     @tolerance = RMath3D::TOLERANCE
     @zero = RVec3.new( 0, 0, 0 )

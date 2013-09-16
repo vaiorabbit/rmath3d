@@ -1,5 +1,5 @@
-require 'test/unit'
-class TC_RQuat < Test::Unit::TestCase
+require 'minitest/autorun'
+class TC_RQuat < Minitest::Test
   def setup
     @tolerance = RMath3D::TOLERANCE
     @zero = RQuat.new( 0, 0, 0, 0 )

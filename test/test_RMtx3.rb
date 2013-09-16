@@ -1,5 +1,4 @@
-require 'test/unit'
-class TC_RMtx3 < Test::Unit::TestCase
+class TC_RMtx3 < Minitest::Test
 
   def setup
     @tolerance = RMath3D::TOLERANCE

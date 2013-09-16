@@ -1,3 +1,7 @@
+2013-09-16  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* sample/opengl-bingings: Added sample using my opengl-bindings gem ( https://rubygems.org/gems/opengl-bindings ).
+
 2013-07-15  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Fixed directory organization / source file names to comply with RubyGems' packaging system.
