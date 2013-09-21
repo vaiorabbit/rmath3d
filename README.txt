@@ -2,7 +2,7 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-                                             Last Update: Sep 16, 2013
+                                             Last Update: Sep 21, 2013
                                                    Since: Jul 20, 2008
                                                    by vaiorabbit
 == Features
@@ -19,6 +19,17 @@ rmath3d is a math module for 3D game programming and computer graphics.
 
 1. rmath3d.{so|bundle} : Ruby extension library for faster execution.
 2. rmath3d_plain.rb    : Ruby implemantation for debugging use.
+
+
+== Tested Environment
+
+Notice: This library provides native extension. You must setup develop environment (or DevKit) before installation.
+
+* Ruby
+ * ruby 2.0.0p247 (2013-06-27 revision 41674) [x86_64-darwin12.4.0]
+ * ruby 2.0.0p247 (2013-06-27) [i386-mingw32] With Development Kit installed.
+   * I used: DevKit-mingw64-32-4.7.2-20130224-1151-sfx.exe
+   * Unpack the archive -> "> ruby dk.rb init" -> edit config.yml (just add your ruby foldier) -> "> ruby dk.rb install" 
 
 
 == Building rmath3d.{so|bundle}

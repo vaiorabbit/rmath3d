@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
 
   gem.description   = <<-DESC
 Provides vector3/4, matrix3x3/4x4 and quaternion in C extension library form (and plain Ruby form with the same interface for debugging use).
+Notice: This library provides native extension. You must setup development environment (or DevKit) before installation.
   DESC
 
   gem.files = 

@@ -1,3 +1,7 @@
+2013-09-21  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* README.txt: Updated tested environment and information about building native extension.
+
 2013-09-16  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* sample/opengl-bingings: Added sample using my opengl-bindings gem ( https://rubygems.org/gems/opengl-bindings ).
