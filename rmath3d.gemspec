@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "rmath3d"
-  gem.version       = "1.0.0"
+  gem.version       = "1.0.1"
   gem.authors       = ["vaiorabbit"]
   gem.email         = ["vaiorabbit@gmail.com"]
   gem.summary       = %q{Ruby Math Module for 3D Applications}
@@ -25,5 +25,5 @@ Provides vector3/4, matrix3x3/4x4 and quaternion in C extension library form (an
     Dir.glob("lib/rmath3d/*.rb") +
     Dir.glob("sample/**/*.rb") +
     Dir.glob("test/*.rb") +
-    ["ChangeLog", "LICENSE.txt", "README.txt", "Rakefile"]
+    ["ChangeLog", "LICENSE.txt", "README.txt", "Rakefile", "Gemfile"]
 end
