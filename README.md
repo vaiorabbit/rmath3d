@@ -32,9 +32,13 @@ Notice: This library provides native extension. You must setup develop environme
     *   ruby 2.0.0p247 (2013-06-27) [i386-mingw32] With Development Kit installed.
         *   I used: DevKit-mingw64-32-4.7.2-20130224-1151-sfx.exe
         *   Unpack the archive -> "> ruby dk.rb init" -> edit config.yml (just add your ruby foldier) -> "> ruby dk.rb install" 
-
+        *   Ref.: http://blog.mattwynne.net/2010/10/12/installing-ruby-gems-with-native-extensions-on-windows/
 
 ## Building rmath3d.{so|bundle} ##
+
+Via RubyGems ( https://rubygems.org/gems/opengl-bindings ):
+
+    $ gem install opengl-bindings
 
 ### From source package ###
 
@@ -156,9 +160,12 @@ Currently, there is no combenient way to convert between matrix.rb's
 
 
 
-## Credits ##
+## Information ##
 
-* vaiorabbit  <http://twitter.com/vaiorabbit>
+*   RubyGems
+	*   https://rubygems.org/gems/opengl-bindings
+*   Github
+	*   https://github.com/vaiorabbit/rmath3d
 
  
 ## License ##
