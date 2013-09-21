@@ -26,5 +26,5 @@ Notice: This library provides native extension. You must setup development envir
     Dir.glob("lib/rmath3d/*.rb") +
     Dir.glob("sample/**/*.rb") +
     Dir.glob("test/*.rb") +
-    ["ChangeLog", "LICENSE.txt", "README.txt", "Rakefile", "Gemfile"]
+    ["ChangeLog", "LICENSE.txt", "README.md", "Rakefile", "Gemfile"]
 end
