@@ -1,6 +1,7 @@
 2013-09-21  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* README.txt: Updated tested environment and information about building native extension.
+	* README.md: Renamed from README.txt
 
 2013-09-16  vaiorabbit  <http://twitter.com/vaiorabbit>
 
