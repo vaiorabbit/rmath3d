@@ -1,3 +1,7 @@
+2013-10-26  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* rmath3d_plain.gemspec: Packs pure ruby implementation into 'rmath3d_plain-X.Y.Z.gem'.
+
 2013-09-21  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* README.txt: Updated tested environment and information about building native extension.
