@@ -4,7 +4,7 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-*   Last Update: Sep 21, 2013
+*   Last Update: Oct 26, 2013
 *   Since: Jul 20, 2008
 
 ## Features ##
@@ -36,9 +36,13 @@ Notice: This library provides native extension. You must setup develop environme
 
 ## Building rmath3d.{so|bundle} ##
 
-Via RubyGems ( https://rubygems.org/gems/opengl-bindings ):
+Via RubyGems ( https://rubygems.org/gems/rmath3d ):
 
-    $ gem install opengl-bindings
+    $ gem install rmath3d
+
+for pure ruby version:
+
+    $ gem install rmath3d_plain
 
 ### From source package ###
 
@@ -163,7 +167,7 @@ Currently, there is no combenient way to convert between matrix.rb's
 ## Information ##
 
 *   RubyGems
-	*   https://rubygems.org/gems/opengl-bindings
+	*   https://rubygems.org/gems/rmath3d
 *   Github
 	*   https://github.com/vaiorabbit/rmath3d
 
