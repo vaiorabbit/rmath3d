@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "rmath3d"
-  gem.version       = "1.0.1"
+  gem.version       = "1.0.2"
   gem.authors       = ["vaiorabbit"]
   gem.email         = ["vaiorabbit@gmail.com"]
   gem.summary       = %q{Ruby Math Module for 3D Applications}
@@ -26,5 +26,5 @@ Notice: This library provides native extension. You must setup development envir
     Dir.glob("lib/rmath3d/*.rb") +
     Dir.glob("sample/**/*.rb") +
     Dir.glob("test/*.rb") +
-    ["ChangeLog", "LICENSE.txt", "README.md", "Rakefile", "Gemfile"]
+    ["ChangeLog", "LICENSE.txt", "README.md", "Rakefile"]
 end

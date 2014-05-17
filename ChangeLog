@@ -1,3 +1,7 @@
+2014-05-17  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* ext/rmath3d/rmath3d.c: Fixed memory management
+
 2013-10-26  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* rmath3d_plain.gemspec: Packs pure ruby implementation into 'rmath3d_plain-X.Y.Z.gem'.
