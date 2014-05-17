@@ -73,6 +73,12 @@ static VALUE RVec4_from_source( RVec4* src );
  * * elements are stored in column-major order.
  */
 
+static void
+RMtx3_free( void* ptr )
+{
+	xfree( ptr );
+}
+
 static VALUE
 RMtx3_from_source( RMtx3* src )
 {
@@ -80,7 +86,7 @@ RMtx3_from_source( RMtx3* src )
 
     RMtx3Copy( v, src );
 
-    return Data_Wrap_Struct( rb_cRMtx3, 0, -1, v );
+    return Data_Wrap_Struct( rb_cRMtx3, NULL, RMtx3_free, v );
 }
 
 
@@ -91,7 +97,7 @@ RMtx3_allocate( VALUE klass )
 
     memset( v, 0, sizeof(RMtx3) );
 
-    return Data_Wrap_Struct( klass, 0, -1, v );
+    return Data_Wrap_Struct( klass, NULL, RMtx3_free, v );
 }
 
 
@@ -1190,6 +1196,12 @@ RMtx3_op_assign_mult( VALUE self, VALUE other )
  * * elements are stored in column-major order.
  */
 
+static void
+RMtx4_free( void* ptr )
+{
+	xfree( ptr );
+}
+
 static VALUE
 RMtx4_from_source( RMtx4* src )
 {
@@ -1197,7 +1209,7 @@ RMtx4_from_source( RMtx4* src )
 
     RMtx4Copy( v, src );
 
-    return Data_Wrap_Struct( rb_cRMtx4, 0, -1, v );
+    return Data_Wrap_Struct( rb_cRMtx4, NULL, RMtx4_free, v );
 }
 
 
@@ -1208,7 +1220,7 @@ RMtx4_allocate( VALUE klass )
 
     memset( v, 0, sizeof(RMtx4) );
 
-    return Data_Wrap_Struct( klass, 0, -1, v );
+    return Data_Wrap_Struct( klass, NULL, RMtx4_free, v );
 }
 
 
@@ -2735,6 +2747,12 @@ RMtx4_op_assign_mult( VALUE self, VALUE other )
  * provies quaternion arithmetic.
  */
 
+static void
+RQuat_free( void* ptr )
+{
+	xfree( ptr );
+}
+
 static VALUE
 RQuat_from_source( RQuat* src )
 {
@@ -2742,7 +2760,7 @@ RQuat_from_source( RQuat* src )
 
     RQuatCopy( v, src );
 
-    return Data_Wrap_Struct( rb_cRQuat, 0, -1, v );
+    return Data_Wrap_Struct( rb_cRQuat, NULL, RQuat_free, v );
 }
 
 
@@ -2753,7 +2771,7 @@ RQuat_allocate( VALUE klass )
 
     memset( v, 0, sizeof(RQuat) );
 
-    return Data_Wrap_Struct( klass, 0, -1, v );
+    return Data_Wrap_Struct( klass, NULL, RQuat_free, v );
 }
 
 
@@ -3732,6 +3750,12 @@ RQuat_toAxisAngle( VALUE self )
  * provies 3 element vector arithmetic.
  */
 
+static void
+RVec3_free( void* ptr )
+{
+	xfree( ptr );
+}
+
 static VALUE
 RVec3_from_source( RVec3* src )
 {
@@ -3739,7 +3763,7 @@ RVec3_from_source( RVec3* src )
 
     RVec3Copy( v, src );
 
-    return Data_Wrap_Struct( rb_cRVec3, 0, -1, v );
+    return Data_Wrap_Struct( rb_cRVec3, NULL, RVec3_free, v );
 }
 
 
@@ -3750,7 +3774,7 @@ RVec3_allocate( VALUE klass )
 
     memset( v, 0, sizeof(RVec3) );
 
-    return Data_Wrap_Struct( klass, 0, -1, v );
+    return Data_Wrap_Struct( klass, NULL, RVec3_free, v );
 }
 
 
@@ -4726,6 +4750,12 @@ RVec3_op_assign_mult( VALUE self, VALUE other )
  * provies 4 element vector arithmetic.
  */
 
+static void
+RVec4_free( void* ptr )
+{
+	xfree( ptr );
+}
+
 static VALUE
 RVec4_from_source( RVec4* src )
 {
@@ -4733,7 +4763,7 @@ RVec4_from_source( RVec4* src )
 
     RVec4Copy( v, src );
 
-    return Data_Wrap_Struct( rb_cRVec4, 0, -1, v );
+    return Data_Wrap_Struct( rb_cRVec4, NULL, RVec4_free, v );
 }
 
 
@@ -4744,7 +4774,7 @@ RVec4_allocate( VALUE klass )
 
     memset( v, 0, sizeof(RVec4) );
 
-    return Data_Wrap_Struct( klass, 0, -1, v );
+    return Data_Wrap_Struct( klass, NULL, RVec4_free, v );
 }
 
 
