@@ -11,8 +11,10 @@ include RMath3D
 require 'minitest/autorun'
 
 # Test cases
+require_relative 'test_RVec2.rb'
 require_relative 'test_RVec3.rb'
 require_relative 'test_RVec4.rb'
 require_relative 'test_RQuat.rb'
+require_relative 'test_RMtx2.rb'
 require_relative 'test_RMtx3.rb'
 require_relative 'test_RMtx4.rb'

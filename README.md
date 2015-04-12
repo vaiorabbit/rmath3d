@@ -4,18 +4,20 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-*   Last Update: May 17, 2014
+*   Last Update: Apr 12, 2015
 *   Since: Jul 20, 2008
 
 ## Features ##
 
 ### Supports frequently-used vector and matrix classes ###
 
+*   RMtx2 (2x2 matrix)
 *   RMtx3 (3x3 matrix)
 *   RMtx4 (4x4 matrix)
 *   RQuat (Quaternion)
-*   RVec3 (3 element vector)
-*   RVec4 (4 element vector)
+*   RVec2 (2-element vector)
+*   RVec3 (3-element vector)
+*   RVec4 (4-element vector)
 
 ### Two implementations that are interchangeable with each other ###
 

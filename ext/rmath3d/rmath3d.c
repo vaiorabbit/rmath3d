@@ -14,9 +14,11 @@
  ********************************************************************************/
 
 VALUE rb_mRMath;
+VALUE rb_cRVec2;
 VALUE rb_cRVec3;
 VALUE rb_cRVec4;
 VALUE rb_cRQuat;
+VALUE rb_cRMtx2;
 VALUE rb_cRMtx3;
 VALUE rb_cRMtx4;
 
@@ -40,9 +42,11 @@ VALUE rb_cRMtx4;
 #define DOUBLE2NUM(dbl) rb_float_new(dbl)
 #endif
 
+#define IsRVec2(v) rb_obj_is_kind_of( (v), rb_cRVec2 )
 #define IsRVec3(v) rb_obj_is_kind_of( (v), rb_cRVec3 )
 #define IsRVec4(v) rb_obj_is_kind_of( (v), rb_cRVec4 )
 #define IsRQuat(v) rb_obj_is_kind_of( (v), rb_cRQuat )
+#define IsRMtx2(v) rb_obj_is_kind_of( (v), rb_cRMtx2 )
 #define IsRMtx3(v) rb_obj_is_kind_of( (v), rb_cRMtx3 )
 #define IsRMtx4(v) rb_obj_is_kind_of( (v), rb_cRMtx4 )
 
@@ -52,11 +56,928 @@ VALUE rb_cRMtx4;
 #   define RMATH_FVAL_FMT "%#.15g"
 #endif
 
+static VALUE RMtx2_from_source( RMtx2* src );
 static VALUE RMtx3_from_source( RMtx3* src );
 static VALUE RMtx4_from_source( RMtx4* src );
 static VALUE RQuat_from_source( RQuat* src );
+static VALUE RVec2_from_source( RVec2* src );
 static VALUE RVec3_from_source( RVec3* src );
 static VALUE RVec4_from_source( RVec4* src );
+
+
+/********************************************************************************
+ *
+ * RMtx2
+ *
+ ********************************************************************************/
+
+/*
+ * Document-class: RMath::RMtx2
+ * provies 2x2 matrix arithmetic.
+ *
+ * <b>Notice</b>
+ * * elements are stored in column-major order.
+ */
+
+static void
+RMtx2_free( void* ptr )
+{
+	xfree( ptr );
+}
+
+static VALUE
+RMtx2_from_source( RMtx2* src )
+{
+    RMtx2* v = ALLOC( RMtx2 );
+
+    RMtx2Copy( v, src );
+
+    return Data_Wrap_Struct( rb_cRMtx2, NULL, RMtx2_free, v );
+}
+
+
+static VALUE
+RMtx2_allocate( VALUE klass )
+{
+    RMtx2* v = ALLOC( RMtx2 );
+
+    memset( v, 0, sizeof(RMtx2) );
+
+    return Data_Wrap_Struct( klass, NULL, RMtx2_free, v );
+}
+
+
+/*
+ * call-seq:
+ *   RMtx2.new -> ((1,0,0),(0,1,0),(0,0,1))
+ *   RMtx2.new(e) -> ((e,e,e), (e,e,e), (e,e,e))
+ *   RMtx2.new( other ) : Copy Constructor
+ *   RMtx2.new( e0, e1, ..., e8 ) -> ((e0,e1,e2), (e3,e4,e5), (e6,e7,e8))
+ *
+ * Creates a new 2x2 matrix.
+ */
+static VALUE
+RMtx2_initialize( int argc, VALUE* argv, VALUE self )
+{
+    RMtx2* v = NULL;
+    Data_Get_Struct( self, RMtx2, v );
+
+    switch( argc )
+    {
+    case 0:
+    {
+        /* Default Constructor */
+        RMtx2Zero( v );
+        return self;
+    }
+    break;
+
+    case 1:
+    {
+        VALUE arg = argv[0];
+        switch ( TYPE( arg ) )
+        {
+        case T_FIXNUM:
+        case T_FLOAT:
+        {
+            /* convert to float */
+            rmReal f = NUM2DBL( arg );
+            RMtx2SetElements( v,
+                              f,f,
+                              f,f );
+            return self;
+        }
+        break;
+
+        case T_DATA:
+        {
+            if ( IsRMtx2(arg) )
+            {
+                /* Copy Constructor */
+                RMtx2* other;
+                Data_Get_Struct( arg , RMtx2, other );
+                RMtx2Copy( v, other );
+                return self;
+            }
+            else
+                return Qnil;
+        }
+        break;
+
+        default:
+        {
+            rb_raise( rb_eTypeError,
+                      "RMtx2_new : Unknown type %s.",
+                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                );
+            return Qnil;
+        }
+        break;
+        } /* End : switch ( TYPE( arg ) ) */
+    } /* End : case 1 */
+    break;
+
+    case 4:
+    {
+        /* Element-wise setter */
+        int row, col;
+        for ( row = 0; row < 2; ++row )
+        {
+            for ( col = 0; col < 2; ++col )
+            {
+                int i = 2*row + col;
+                switch ( TYPE( argv[i] ) )
+                {
+                case T_FIXNUM:
+                case T_FLOAT:
+                {
+                    rmReal f = NUM2DBL( argv[i] );
+                    RMtx2SetElement( v, row, col, f );
+                }
+                break;
+
+                default:
+                {
+                    rb_raise( rb_eTypeError,
+                              "RMtx2_new : Unknown type %s. at arg %d",
+                              rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
+                              i
+                        );
+                    return Qnil;
+                }
+                break;
+                }
+            } /* End : for ( col = 0; col < 2; ++col ) */
+        } /* End : for ( row = 0; row < 2; ++row ) */
+
+        return self;
+    } /* End : case 4 */
+    break;
+
+    default:
+    {
+        rb_raise( rb_eRuntimeError, "RMtx2_initialize : wrong # of arguments (%d)", argc );
+        return Qnil;
+    }
+    break;
+    } /* End : switch( argc ) */
+}
+
+/*
+ * call-seq: to_s
+ *
+ * Returns human-readable string.
+ */
+static VALUE
+RMtx2_to_s( VALUE self )
+{
+    RMtx2* v;
+    char dest[2*128], work[2][32], *p;
+    int row, col, n;
+    rmReal val;
+
+    Data_Get_Struct( self, RMtx2, v );
+
+    p = dest;
+    for ( row = 0; row < 2; ++row )
+    {
+        for ( col = 0; col < 2; ++col )
+        {
+            val = RMtx2GetElement( v, row, col );
+            if ( isnan(val) )
+                sprintf( work[col], "%s", val >= 0 ? "Inf" : "-Inf" );
+            else if ( isinf(val) )
+                sprintf( work[col], "%s", "NaN" );
+            else
+                sprintf( work[col], RMATH_FVAL_FMT, val );
+        }
+        n = sprintf( p, "(%s, %s)\n", work[0], work[1] );
+        p += n;
+    }
+
+    return rb_str_new2( dest );
+}
+
+/*
+ * call-seq: inspect
+ *
+ * Returns human-readable string.
+ */
+static VALUE
+RMtx2_inspect( VALUE self )
+{
+    return RMtx2_to_s(self);
+}
+
+/*
+ * call-seq: to_a
+ *
+ * Returns its elements as a new Array.
+ */
+static VALUE
+RMtx2_to_a( VALUE self )
+{
+    int row, col;
+    RMtx2* v = NULL;
+    VALUE dbl[4];
+    Data_Get_Struct( self, RMtx2, v );
+
+    /* column-major */
+    for ( col = 0; col < 2; ++col )
+    {
+        for ( row = 0; row < 2; ++row )
+        {
+            int i = 2*col + row;
+            dbl[i] = DOUBLE2NUM(RMtx2GetElement(v,row,col));
+        }
+    }
+
+    return rb_ary_new4( 4, dbl );
+}
+
+/*
+ * call-seq: coerse(other)
+ *
+ * Resolves type mismatch.
+ */
+static VALUE
+RMtx2_coerce( VALUE self, VALUE other )
+{
+    RMtx2* v = NULL;
+    Data_Get_Struct( self, RMtx2, v );
+
+    switch( TYPE(other) )
+    {
+    case T_FLOAT:
+    case T_FIXNUM:
+    case T_BIGNUM:
+    {
+        /* 'other (op) RMtx2'
+         * -> try again as 'RMtx2 (op) other'
+         */
+        return rb_ary_new3( 2,  self, other );
+    }
+    break;
+
+    default:
+    {
+        rb_raise( rb_eTypeError,
+                  "%s can't be coerced into %s",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
+                  rb_obj_classname( self )
+            );
+        return Qnil;
+    }
+    break;
+    }
+}
+
+/*
+ * call-seq: setElements( e0, e1, e2, e3 )
+ *
+ * Stores given 4 new values.
+ */
+static VALUE
+RMtx2_setElements( int argc, VALUE* argv, VALUE self )
+{
+    RMtx2* m = NULL;
+    int row, col;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( argc != 4 )
+    {
+        rb_raise( rb_eRuntimeError, "RMtx2_setElements : wrong # of arguments (%d)", argc );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RMtx2, m );
+    for ( row = 0; row < 2; ++row )
+    {
+        for ( col = 0; col < 2; ++col )
+        {
+            int i = 2*row + col;
+            RMtx2SetElement( m, row, col, NUM2DBL(argv[i]) );
+        }
+    }
+
+    return self;
+}
+
+/*
+ * call-seq: [row,col]= value
+ *
+ * Stores +value+ at (+row+,+col+).
+ */
+static VALUE
+RMtx2_setElement( VALUE self, VALUE r, VALUE c, VALUE f )
+{
+    RMtx2* m = NULL;
+    int row, col;
+    rmReal flt;
+
+    Data_Get_Struct( self, RMtx2, m );
+    row = FIX2INT(r);
+    col = FIX2INT(c);
+    flt = NUM2DBL(f);
+
+    RMtx2SetElement( m, row, col, flt );
+
+    return self;
+}
+
+/*
+ * call-seq: [row,col] -> value
+ *
+ * Returns the element at (+row+,+col+).
+ */
+static VALUE
+RMtx2_getElement( VALUE self, VALUE r, VALUE c )
+{
+    RMtx2* m = NULL;
+    int row, col;
+    rmReal flt;
+
+    Data_Get_Struct( self, RMtx2, m );
+    row = FIX2INT(r);
+    col = FIX2INT(c);
+    flt = RMtx2GetElement( m, row, col );
+
+    return DOUBLE2NUM( flt );
+}
+
+/* Returns the element at row 0 and column 0.
+ */
+static VALUE
+RMtx2_get_e00( VALUE self )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    return DOUBLE2NUM( RMtx2GetElement( m, 0, 0 ) );
+}
+
+/* Returns the element at row 0 and column 1.
+ */
+static VALUE
+RMtx2_get_e01( VALUE self )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    return DOUBLE2NUM( RMtx2GetElement( m, 0, 1 ) );
+}
+
+/* Returns the element at row 1 and column 0.
+ */
+static VALUE
+RMtx2_get_e10( VALUE self )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    return DOUBLE2NUM( RMtx2GetElement( m, 1, 0 ) );
+}
+
+/* Returns the element at row 1 and column 1.
+ */
+static VALUE
+RMtx2_get_e11( VALUE self )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    return DOUBLE2NUM( RMtx2GetElement( m, 1, 1 ) );
+}
+
+/* Replaces the element at row 0 and column 0 by +value+.
+ */
+static VALUE
+RMtx2_set_e00( VALUE self, VALUE f )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    RMtx2SetElement( m, 0, 0, NUM2DBL(f) );
+
+    return self;
+}
+
+/* Replaces the element at row 0 and column 1 by +value+.
+ */
+static VALUE
+RMtx2_set_e01( VALUE self, VALUE f )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    RMtx2SetElement( m, 0, 1, NUM2DBL(f) );
+
+    return self;
+}
+
+/* Replaces the element at row 1 and column 0 by +value+.
+ */
+static VALUE
+RMtx2_set_e10( VALUE self, VALUE f )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    RMtx2SetElement( m, 1, 0, NUM2DBL(f) );
+
+    return self;
+}
+
+/* Replaces the element at row 1 and column 1 by +value+.
+ */
+static VALUE
+RMtx2_set_e11( VALUE self, VALUE f )
+{
+    RMtx2* m;
+
+    Data_Get_Struct( self, RMtx2, m );
+
+    RMtx2SetElement( m, 1, 1, NUM2DBL(f) );
+
+    return self;
+}
+
+
+/*
+ * call-seq: mtx2.getRow(r) -> RVec2
+ *
+ * Returns +r+-th row vector.
+ */
+static VALUE
+RMtx2_getRow( VALUE self, VALUE row )
+{
+    RMtx2* m = NULL;
+    int at;
+    RVec2 out;
+
+    Data_Get_Struct( self, RMtx2, m );
+    at = FIX2INT(row);
+    RMtx2GetRow( &out, m, at );
+
+    return RVec2_from_source( &out );
+}
+
+/*
+ * call-seq: mtx2.getColumn(c) -> RVec2
+ *
+ * Returns +c+-th column vector.
+ */
+static VALUE
+RMtx2_getColumn( VALUE self, VALUE column )
+{
+    RMtx2* m = NULL;
+    int at;
+    RVec2 out;
+
+    Data_Get_Struct( self, RMtx2, m );
+    at = FIX2INT(column);
+    RMtx2GetColumn( &out, m, at );
+
+    return RVec2_from_source( &out );
+}
+
+
+/*
+ * call-seq: mtx2.setRow(v,r)
+ *
+ * Returns sets +r+-th row by vector +v+.
+ */
+static VALUE
+RMtx2_setRow( VALUE self, VALUE v, VALUE row )
+{
+    RMtx2* m;
+    RVec2* in;
+    int at;
+
+    Data_Get_Struct( self, RMtx2, m );
+    Data_Get_Struct( v, RVec2, in );
+    at = FIX2INT(row);
+    RMtx2SetRow( m, in, at );
+
+    return self;
+}
+
+
+/*
+ * call-seq: mtx2.setColumn(v,c)
+ *
+ * Returns sets +c+-th column by vector +v+.
+ */
+static VALUE
+RMtx2_setColumn( VALUE self, VALUE v, VALUE column )
+{
+    RMtx2* m;
+    RVec2* in;
+    int at;
+
+    Data_Get_Struct( self, RMtx2, m );
+    Data_Get_Struct( v, RVec2, in );
+    at = FIX2INT(column);
+    RMtx2SetColumn( m, in, at );
+
+    return self;
+}
+
+
+
+/*
+ * call-seq: setZero
+ *
+ * Clears all elements by 0.0
+ */
+static VALUE
+RMtx2_setZero( VALUE self )
+{
+    RMtx2* m = NULL;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Zero( m );
+
+    return self;
+}
+
+/*
+ * call-seq: setIdentity
+ *
+ * Sets as identity matrix.
+ */
+static VALUE
+RMtx2_setIdentity( VALUE self )
+{
+    RMtx2* m = NULL;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Identity( m );
+
+    return self;
+}
+
+/*
+ * call-seq: getDeterminant -> determinant
+ *
+ * Calculates determinant.
+ */
+static VALUE
+RMtx2_getDeterminant( VALUE self )
+{
+    RMtx2* m = NULL;
+    rmReal f;
+
+    Data_Get_Struct( self, RMtx2, m );
+    f = RMtx2Determinant( m );
+
+    return DOUBLE2NUM( f );
+}
+
+/*
+ * call-seq: getTransposed
+ *
+ * Returns transposed matrix.
+ */
+static VALUE
+RMtx2_transpose( VALUE self )
+{
+    RMtx2* m = NULL;
+    RMtx2 out;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Transpose( &out, m );
+
+    return RMtx2_from_source( &out );
+}
+
+/*
+ * call-seq: transpose!
+ *
+ * Transposeas its elements.
+ */
+static VALUE
+RMtx2_transpose_intrusive( VALUE self )
+{
+    RMtx2* m = NULL;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Transpose( m, m );
+
+    return self;
+}
+
+/*
+ * call-seq: getInverse -> inverse
+ *
+ * Returns the inverse.
+ */
+static VALUE
+RMtx2_inverse( VALUE self )
+{
+    RMtx2* m = NULL;
+    RMtx2 out;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Inverse( &out, m );
+
+    return RMtx2_from_source( &out );
+}
+
+/*
+ * call-seq: invert! -> self
+ *
+ * Makes itself as the inverse of the original matrix.
+ */
+static VALUE
+RMtx2_invert( VALUE self )
+{
+    RMtx2* m = NULL;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Inverse( m, m );
+
+    return self;
+}
+
+/*
+ * call-seq: rotation(radian) -> self
+ *
+ * Makes a matrix that rotates around the z-axis.
+ */
+static VALUE
+RMtx2_rotation( VALUE self, VALUE radian )
+{
+    RMtx2* m = NULL;
+    rmReal angle_radian;
+
+    Data_Get_Struct( self, RMtx2, m );
+    angle_radian = NUM2DBL(radian);
+    RMtx2Rotation( m, angle_radian );
+
+    return self;
+}
+
+/*
+ * call-seq: scaling(sx,sy) -> self
+ *
+ * Makes itself as a scaling matrix.
+ */
+static VALUE
+RMtx2_scaling( VALUE self, VALUE x, VALUE y )
+{
+    RMtx2* m = NULL;
+    rmReal sx, sy;
+
+    Data_Get_Struct( self, RMtx2, m );
+    sx = NUM2DBL(x);
+    sy = NUM2DBL(y);
+    RMtx2Scaling( m, sx, sy );
+
+    return self;
+}
+
+/*
+ * call-seq: +
+ *
+ * +mtx : Unary plus operator.
+ */
+static VALUE
+RMtx2_op_unary_plus( VALUE self )
+{
+    return self;
+}
+
+/*
+ * call-seq: -
+ *
+ * -mtx : Unary minus operator.
+ */
+static VALUE
+RMtx2_op_unary_minus( VALUE self )
+{
+    RMtx2* m = NULL;
+    RMtx2 out;
+
+    Data_Get_Struct( self, RMtx2, m );
+    RMtx2Scale( &out, m, (rmReal)(-1) );
+
+    return RMtx2_from_source( &out );
+}
+
+/*
+ * call-seq: +
+ *
+ * mtx1 + mtx2 : Binary plus operator.
+ */
+static VALUE
+RMtx2_op_binary_plus( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+    RMtx2 result;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRMtx2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RMtx2#+ : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RMtx2, m1 );
+    Data_Get_Struct( other, RMtx2, m2 );
+    RMtx2Add( &result, m1, m2 );
+
+    return RMtx2_from_source( &result );
+}
+
+/*
+ * call-seq: -
+ *
+ * mtx1 - mtx2 : Binary minus operator.
+ */
+static VALUE
+RMtx2_op_binary_minus( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+    RMtx2 result;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRMtx2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RMtx2#- : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RMtx2, m1 );
+    Data_Get_Struct( other, RMtx2, m2 );
+    RMtx2Sub( &result, m1, m2 );
+
+    return RMtx2_from_source( &result );
+}
+
+/*
+ * call-seq: **
+ *
+ * mtx1 * mtx2 : Binary multiply operator.
+ */
+static VALUE
+RMtx2_op_binary_mult( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+    rmReal f;
+    RMtx2 result;
+
+    Data_Get_Struct( self, RMtx2, m1 );
+
+    if ( IsRMtx2(other) )
+    {
+        Data_Get_Struct( other, RMtx2, m2 );
+        RMtx2Mul( &result, m1, m2 );
+    }
+    else
+    {
+        f = NUM2DBL( other );
+        RMtx2Scale( &result, m1, f );
+    }
+
+    return RMtx2_from_source( &result );
+}
+
+/*
+ * call-seq: ==
+ *
+ * mtx1 == mtx2 : evaluates equality.
+ */
+static VALUE
+RMtx2_op_binary_eq( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRMtx2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RMtx2#== : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self,  RMtx2, m1 );
+    Data_Get_Struct( other, RMtx2, m2 );
+
+    if ( !RMtx2Equal(m1,m2) )
+        return Qfalse;
+    else
+        return Qtrue;
+}
+
+/*
+ * call-seq: mtx1.add!( mtx2 )
+ *
+ * mtx1 += mtx2 : appends the elements of +mtx2+ into corresponding +mtx1+ elements.
+ */
+static VALUE
+RMtx2_op_assign_plus( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRMtx2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RMtx2#+= : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RMtx2, m1 );
+    Data_Get_Struct( other, RMtx2, m2 );
+    RMtx2Add( m1, m1, m2 );
+
+    return self;
+}
+
+/*
+ * call-seq: mtx1.sub!( mtx2 )
+ *
+ * mtx1 -= mtx2 : subtracts the elements of +mtx2+ from corresponding +mtx1+ elements.
+ */
+static VALUE
+RMtx2_op_assign_minus( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRMtx2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RMtx2#-= : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RMtx2, m1 );
+    Data_Get_Struct( other, RMtx2, m2 );
+    RMtx2Sub( m1, m1, m2 );
+
+    return self;
+}
+
+/*
+ * call-seq: mtx1.mul!( mtx2 )
+ *
+ * mtx1 *= mtx2
+ */
+static VALUE
+RMtx2_op_assign_mult( VALUE self, VALUE other )
+{
+    RMtx2* m1 = NULL;
+    RMtx2* m2 = NULL;
+    rmReal f;
+
+    Data_Get_Struct( self, RMtx2, m1 );
+
+    if ( IsRMtx2(other) )
+    {
+        Data_Get_Struct( other, RMtx2, m2 );
+        RMtx2Mul( m1, m1, m2 );
+    }
+    else
+    {
+        f = NUM2DBL( other );
+        RMtx2Scale( m1, m1, f );
+    }
+
+    return self;
+}
 
 
 /********************************************************************************
@@ -970,7 +1891,7 @@ RMtx3_op_unary_minus( VALUE self )
     RMtx3 out;
 
     Data_Get_Struct( self, RMtx3, m );
-    RMtx3Scale( &out, m, -1.0f );
+    RMtx3Scale( &out, m, (rmReal)(-1) );
 
     return RMtx3_from_source( &out );
 }
@@ -2524,7 +3445,7 @@ RMtx4_op_unary_minus( VALUE self )
     RMtx4 out;
 
     Data_Get_Struct( self, RMtx4, m );
-    RMtx4Scale( &out, m, -1.0f );
+    RMtx4Scale( &out, m, (rmReal)(-1) );
 
     return RMtx4_from_source( &out );
 }
@@ -3437,7 +4358,7 @@ RQuat_op_unary_minus( VALUE self )
     RQuat out;
 
     Data_Get_Struct( self, RQuat, v );
-    RQuatScale( &out, v, -1.0f );
+    RQuatScale( &out, v, (rmReal)(-1) );
 
     return RQuat_from_source( &out );
 }
@@ -3736,6 +4657,751 @@ RQuat_toAxisAngle( VALUE self )
     RQuatToAxisAngle( q, &axis, &radian );
 
     return rb_ary_new3( 2, RVec3_from_source(&axis), DOUBLE2NUM(radian) );
+}
+
+
+/********************************************************************************
+ *
+ * RVec2
+ *
+ ********************************************************************************/
+
+/*
+ * Document-class: RMath::RVec2
+ * provies 3 element vector arithmetic.
+ */
+
+static void
+RVec2_free( void* ptr )
+{
+	xfree( ptr );
+}
+
+static VALUE
+RVec2_from_source( RVec2* src )
+{
+    RVec2* v = ALLOC( RVec2 );
+
+    RVec2Copy( v, src );
+
+    return Data_Wrap_Struct( rb_cRVec2, NULL, RVec2_free, v );
+}
+
+
+static VALUE
+RVec2_allocate( VALUE klass )
+{
+    RVec2* v = ALLOC( RVec2 );
+
+    memset( v, 0, sizeof(RVec2) );
+
+    return Data_Wrap_Struct( klass, NULL, RVec2_free, v );
+}
+
+
+/*
+ * call-seq:
+ *   RVec2.new -> (0,0,0)
+ *   RVec2.new(e) -> (e,e,e)
+ *   RVec2.new( other ) : Copy Constructor
+ *   RVec2.new( e0, e1, e2 ) -> (e0,e1,e2)
+ *
+ * Creates a new 2 element vector.
+ */
+static VALUE
+RVec2_initialize( int argc, VALUE* argv, VALUE self )
+{
+    RVec2* v = NULL;
+    Data_Get_Struct( self, RVec2, v );
+
+    switch( argc )
+    {
+    case 0:
+    {
+        /* Default Constructor */
+        RVec2SetElements( v, 0.0f, 0.0f );
+        return self;
+    }
+    break;
+
+    case 1:
+    {
+        VALUE arg = argv[0];
+        switch ( TYPE( arg ) )
+        {
+        case T_FIXNUM:
+        case T_FLOAT:
+        {
+            /* convert to float */
+            rmReal f = NUM2DBL( arg );
+            RVec2SetElements( v, f,f );
+            return self;
+        }
+        break;
+
+        case T_DATA:
+        {
+            if ( IsRVec2(arg) )
+            {
+                /* Copy Constructor */
+                RVec2* other;
+                Data_Get_Struct( arg , RVec2, other );
+                RVec2SetElements( v, other->x, other->y );
+                return self;
+            }
+            else
+                return Qnil;
+        }
+        break;
+
+        default:
+        {
+            rb_raise( rb_eTypeError,
+                      "RVec2_new : Unknown type %s.",
+                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                );
+            return Qnil;
+        }
+        break;
+        } /* End : switch ( TYPE( arg ) ) */
+    } /* End : case 1 */
+    break;
+
+    case 2:
+    {
+        /* Element-wise setter */
+        int i;
+        for ( i = 0; i < argc; ++i )
+        {
+            switch ( TYPE( argv[i] ) )
+            {
+            case T_FIXNUM:
+            case T_FLOAT:
+            {
+                rmReal f = NUM2DBL( argv[i] );
+                v->e[i] = f;
+            }
+            break;
+
+            default:
+            {
+                rb_raise( rb_eTypeError,
+                          "RVec2_new : Unknown type %s. at arg %d",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
+                          i
+                    );
+                return Qnil;
+            }
+            break;
+            }
+        } /* End : for ( i = 0; i < argc; ++i ) */
+
+        return self;
+    } /* End : case 2 */
+    break;
+
+    default:
+    {
+        rb_raise( rb_eRuntimeError, "RVec2_initialize : wrong # of arguments (%d)", argc );
+        return Qnil;
+    }
+    break;
+    } /* End : switch( argc ) */
+}
+
+/*
+ * call-seq: to_s
+ *
+ * Returns human-readable string.
+ */
+static VALUE
+RVec2_to_s( VALUE self )
+{
+    RVec2* v;
+    char dest[128], work[2][32];
+    int i;
+
+    Data_Get_Struct( self, RVec2, v );
+
+    for ( i = 0; i < 2; ++i )
+    {
+        if ( isnan(v->e[i]) )
+            sprintf( work[i], "%s", v->e[i] >= 0 ? "Inf" : "-Inf" );
+        else if ( isinf(v->e[i]) )
+            sprintf( work[i], "%s", "NaN" );
+        else
+            sprintf( work[i], RMATH_FVAL_FMT, v->e[i] );
+    }
+    sprintf( dest, "(%s, %s)", work[0], work[1] );
+
+    return rb_str_new2( dest );
+}
+
+/*
+ * call-seq: inspect
+ *
+ * Returns human-readable string.
+ */
+static VALUE
+RVec2_inspect( VALUE self )
+{
+    return RVec2_to_s(self);
+}
+
+/*
+ * call-seq: to_a
+ *
+ * Returns its elements as a new Array.
+ */
+static VALUE
+RVec2_to_a( VALUE self )
+{
+    RVec2* v = NULL;
+    VALUE dbl[2];
+    Data_Get_Struct( self, RVec2, v );
+
+    dbl[0] = DOUBLE2NUM(RVec2GetElement(v,0));
+    dbl[1] = DOUBLE2NUM(RVec2GetElement(v,1));
+
+    return rb_ary_new4( 2, dbl );
+}
+
+/*
+ * call-seq: coerse(other)
+ *
+ * Resolves type mismatch.
+ */
+static VALUE
+RVec2_coerce( VALUE self, VALUE other )
+{
+    RVec2* v = NULL;
+    Data_Get_Struct( self, RVec2, v );
+
+    switch( TYPE(other) )
+    {
+    case T_FLOAT:
+    case T_FIXNUM:
+    case T_BIGNUM:
+    {
+        /* 'other (op) RVec2'
+         * -> try again as 'RVec2 (op) other'
+         */
+        return rb_ary_new3( 2,  self, other );
+    }
+    break;
+
+    default:
+    {
+        rb_raise( rb_eTypeError,
+                  "%s can't be coerced into %s",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
+                  rb_obj_classname( self )
+            );
+        return Qnil;
+    }
+    break;
+    }
+}
+
+/*
+ * call-seq: setElements( e0, e1 )
+ *
+ * Stores given 2 new values.
+ */
+static VALUE
+RVec2_setElements( VALUE self, VALUE x, VALUE y )
+{
+    RVec2* v = NULL;
+    rmReal flt0, flt1;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = NUM2DBL(x);
+    flt1 = NUM2DBL(y);
+
+    RVec2SetElements( v, flt0, flt1 );
+
+    return Qnil;
+}
+
+/*
+ * call-seq: vec2[i]= value
+ *
+ * Stores +value+ at +i+.
+ */
+static VALUE
+RVec2_setElement( VALUE self, VALUE i, VALUE f )
+{
+    RVec2* v = NULL;
+    int at;
+    rmReal flt;
+
+    Data_Get_Struct( self, RVec2, v );
+    at = NUM2INT(i);
+    flt = NUM2DBL(f);
+
+    RVec2SetElement( v, at, flt );
+
+    return self;
+}
+
+/*
+ * call-seq: x= value
+ *
+ * Stores +value+ as +x+.
+ */
+static VALUE
+RVec2_setX( VALUE self, VALUE x )
+{
+    RVec2* v = NULL;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = NUM2DBL(x);
+
+    RVec2SetX( v, flt0 );
+
+    return Qnil;
+}
+
+/*
+ * call-seq: y= value
+ *
+ * Stores +value+ as +y+.
+ */
+static VALUE
+RVec2_setY( VALUE self, VALUE y )
+{
+    RVec2* v = NULL;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = NUM2DBL(y);
+
+    RVec2SetY( v, flt0 );
+
+    return Qnil;
+}
+
+/*
+ * call-seq: vec2[i] -> value
+ *
+ * Returns the element at +i+.
+ */
+static VALUE
+RVec2_getElement( VALUE self, VALUE i )
+{
+    RVec2* v = NULL;
+    int at;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    at = FIX2INT(i);
+    flt0 = RVec2GetElement( v, at );
+
+    return DOUBLE2NUM( flt0 );
+}
+
+/*
+ * call-seq: x -> value
+ *
+ * Returns the value of +x+.
+ */
+static VALUE
+RVec2_getX( VALUE self )
+{
+    RVec2* v = NULL;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = RVec2GetX( v );
+
+    return DOUBLE2NUM( flt0 );
+}
+
+/*
+ * call-seq: y -> value
+ *
+ * Returns the value of +y+.
+ */
+static VALUE
+RVec2_getY( VALUE self )
+{
+    RVec2* v = NULL;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = RVec2GetY( v );
+
+    return DOUBLE2NUM( flt0 );
+}
+
+/*
+ * call-seq: getLength
+ *
+ * Returns the Euclidean length.
+ */
+static VALUE
+RVec2_getLength( VALUE self )
+{
+    RVec2* v = NULL;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = RVec2Length( v );
+
+    return DOUBLE2NUM( flt0 );
+}
+
+/*
+ * call-seq: getLengthSq
+ *
+ * Returns the squared Euclidean length.
+ */
+static VALUE
+RVec2_getLengthSq( VALUE self )
+{
+    RVec2* v = NULL;
+    rmReal flt0;
+
+    Data_Get_Struct( self, RVec2, v );
+    flt0 = RVec2LengthSq( v );
+
+    return DOUBLE2NUM( flt0 );
+}
+
+/*
+ * call-seq: RVec2.dot(v_a,v_b) -> value
+ *
+ * Calculates the dot product of +v_a+ and +v_b+.
+ */
+static VALUE
+RVec2_dot( VALUE self, VALUE v1, VALUE v2 )
+{
+    RVec2* vec1 = NULL;
+    RVec2* vec2 = NULL;
+    rmReal result;
+
+    Data_Get_Struct( v1, RVec2, vec1 );
+    Data_Get_Struct( v2, RVec2, vec2 );
+    result = RVec2Dot( vec1, vec2 );
+
+    return DOUBLE2NUM( result );
+}
+
+/*
+ * call-seq: RVec2.cross(v_a,v_b) -> value
+ *
+ * Calculates the cross product of +v_a+ and +v_b+.
+ */
+static VALUE
+RVec2_cross( VALUE self, VALUE v1, VALUE v2 )
+{
+    RVec2* vec1 = NULL;
+    RVec2* vec2 = NULL;
+    rmReal result;
+
+    Data_Get_Struct( v1, RVec2, vec1 );
+    Data_Get_Struct( v2, RVec2, vec2 );
+    result = RVec2Cross( vec1, vec2 );
+
+    return DOUBLE2NUM( result );
+}
+
+/*
+ * call-seq: transform(mtx2) -> transformed RVec2
+ *
+ * Returns new RVec2 containing the result of the transformation of
+ *  RVec2(self.x,self.y) by +mtx2+ (RMtx2).
+ */
+static VALUE
+RVec2_transform( VALUE self, VALUE mtx )
+{
+    RVec2* v;
+    RMtx2* m;
+    RVec2 out;
+
+    Data_Get_Struct( self, RVec2, v );
+    Data_Get_Struct( mtx, RMtx2, m );
+    RVec2Transform( &out, m, v );
+
+    return RVec2_from_source( &out );
+}
+
+/*
+ * call-seq: getNormalized -> RVec2
+ *
+ * Returns normalized vector.
+ */
+static VALUE
+RVec2_normalize( VALUE self )
+{
+    RVec2* v = NULL;
+    RVec2 out;
+
+    Data_Get_Struct( self, RVec2, v );
+    RVec2Normalize( &out, v );
+
+    return RVec2_from_source( &out );
+}
+
+/*
+ * call-seq: normalize! -> self
+ *
+ * Normalizes itself.
+ */
+static VALUE
+RVec2_normalize_intrusive( VALUE self )
+{
+    RVec2* v = NULL;
+
+    Data_Get_Struct( self, RVec2, v );
+    RVec2Normalize( v, v );
+
+    return self;
+}
+
+/*
+ * call-seq: +
+ *
+ * +vec : Unary plus operator.
+ */
+static VALUE
+RVec2_op_unary_plus( VALUE self )
+{
+    return self;
+}
+
+/*
+ * call-seq: -
+ *
+ * -vec : Unary minus operator.
+ */
+static VALUE
+RVec2_op_unary_minus( VALUE self )
+{
+    RVec2* v   = NULL;
+    RVec2 out;
+
+    Data_Get_Struct( self, RVec2, v );
+    RVec2Scale( &out, v, (rmReal)(-1) );
+
+    return RVec2_from_source( &out );
+}
+
+/*
+ * call-seq: +
+ *
+ * vec1 + vec2 : Binary plus operator.
+ */
+static VALUE
+RVec2_op_binary_plus( VALUE self, VALUE other )
+{
+    RVec2* v1 = NULL;
+    RVec2* v2 = NULL;
+    RVec2 result;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRVec2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#+ : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RVec2, v1 );
+    Data_Get_Struct( other,  RVec2, v2 );
+    RVec2Add( &result, v1, v2 );
+
+    return RVec2_from_source( &result );
+}
+
+/*
+ * call-seq: -
+ *
+ * vec1 - vec2 : Binary minus operator.
+ */
+static VALUE
+RVec2_op_binary_minus( VALUE self, VALUE other )
+{
+    RVec2* v1 = NULL;
+    RVec2* v2 = NULL;
+    RVec2 result;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRVec2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#- : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RVec2, v1 );
+    Data_Get_Struct( other,  RVec2, v2 );
+    RVec2Sub( &result, v1, v2 );
+
+    return RVec2_from_source( &result );
+}
+
+/*
+ * call-seq: **
+ *
+ * vec1 * vec2 : Binary multiply operator.
+ */
+static VALUE
+RVec2_op_binary_mult( VALUE self, VALUE other )
+{
+    RVec2* v  = NULL;
+    RVec2 result;
+    rmReal f;
+
+    switch( TYPE(other) )
+    {
+    case T_FIXNUM:
+    case T_FLOAT:
+    {
+        Data_Get_Struct( self, RVec2, v );
+        f = NUM2DBL( other );
+        RVec2Scale( &result, v, f );
+
+        return RVec2_from_source( &result );
+    }
+    break;
+
+    default:
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#* : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+    } /* End : switch( TYPE(other) ) */
+}
+
+/*
+ * call-seq: ==
+ *
+ * vec1 == vec2 : evaluates equality.
+ */
+static VALUE
+RVec2_op_binary_eq( VALUE self, VALUE other )
+{
+    RVec2* v1 = NULL;
+    RVec2* v2 = NULL;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRVec2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#== : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self,  RVec2, v1 );
+    Data_Get_Struct( other, RVec2, v2 );
+
+    if ( !RVec2Equal(v1,v2) )
+        return Qfalse;
+    else
+        return Qtrue;
+}
+
+/*
+ * call-seq: vec1.add!( vec2 )
+ *
+ * vec1 += vec2 : appends the elements of +vec2+ into corresponding +vec1+ elements.
+ */
+static VALUE
+RVec2_op_assign_plus( VALUE self, VALUE other )
+{
+    RVec2* v1 = NULL;
+    RVec2* v2 = NULL;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRVec2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#+= : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self,  RVec2, v1 );
+    Data_Get_Struct( other, RVec2, v2 );
+
+    RVec2Add( v1, v1, v2 );
+
+    return self;
+}
+
+/*
+ * call-seq: vec1.sub!( vec2 )
+ *
+ * vec1 -= vec2 : subtracts the elements of +vec2+ from corresponding +vec1+ elements.
+ */
+static VALUE
+RVec2_op_assign_minus( VALUE self, VALUE other )
+{
+    RVec2* v1 = NULL;
+    RVec2* v2 = NULL;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( !IsRVec2(other) )
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#-= : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self,  RVec2, v1 );
+    Data_Get_Struct( other, RVec2, v2 );
+
+    RVec2Sub( v1, v1, v2 );
+
+    return self;
+}
+
+/*
+ * call-seq: vec1.mul!( vec2 )
+ *
+ * vec1 *= vec2
+ */
+static VALUE
+RVec2_op_assign_mult( VALUE self, VALUE other )
+{
+    RVec2* v = NULL;
+    rmReal  f;
+
+#ifdef RMATH_ENABLE_ARGUMENT_CHECK
+    if ( TYPE(other) != T_FIXNUM && TYPE(other) != T_FLOAT )
+    {
+        rb_raise( rb_eTypeError,
+                  "RVec2#*= : Unknown type %s.",
+                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
+            );
+        return Qnil;
+    }
+#endif
+
+    Data_Get_Struct( self, RVec2, v );
+    f = NUM2DBL( other );
+    RVec2Scale( v, v, f );
+
+    return self;
 }
 
 
@@ -4517,7 +6183,7 @@ RVec3_op_unary_minus( VALUE self )
     RVec3 out;
 
     Data_Get_Struct( self, RVec3, v );
-    RVec3Scale( &out, v, -1.0f );
+    RVec3Scale( &out, v, (rmReal)(-1) );
 
     return RVec3_from_source( &out );
 }
@@ -5418,7 +7084,7 @@ RVec4_op_unary_minus( VALUE self )
     RVec4 out;
 
     Data_Get_Struct( self, RVec4, v );
-    RVec4Scale( &out, v, -1.0f );
+    RVec4Scale( &out, v, (rmReal)(-1) );
 
     return RVec4_from_source( &out );
 }
@@ -5672,13 +7338,70 @@ Init_rmath3d()
 {
     rb_mRMath = rb_define_module( "RMath3D" );
 
+    rb_cRVec2 = rb_define_class_under( rb_mRMath, "RVec2", rb_cObject );
     rb_cRVec3 = rb_define_class_under( rb_mRMath, "RVec3", rb_cObject );
     rb_cRVec4 = rb_define_class_under( rb_mRMath, "RVec4", rb_cObject );
     rb_cRQuat = rb_define_class_under( rb_mRMath, "RQuat", rb_cObject );
+    rb_cRMtx2 = rb_define_class_under( rb_mRMath, "RMtx2", rb_cObject );
     rb_cRMtx3 = rb_define_class_under( rb_mRMath, "RMtx3", rb_cObject );
     rb_cRMtx4 = rb_define_class_under( rb_mRMath, "RMtx4", rb_cObject );
 
     rb_define_const( rb_mRMath, "TOLERANCE", DOUBLE2NUM(RMATH_TOLERANCE) );
+
+    /********************************************************************************
+     * RMtx2
+     ********************************************************************************/
+
+    rb_define_alloc_func( rb_cRMtx2, RMtx2_allocate );
+
+    rb_define_private_method( rb_cRMtx2, "initialize", RMtx2_initialize, -1 );
+    rb_define_method( rb_cRMtx2, "to_s", RMtx2_to_s, 0 );
+    rb_define_method( rb_cRMtx2, "inspect", RMtx2_inspect, 0 );
+    rb_define_method( rb_cRMtx2, "to_a", RMtx2_to_a, 0 );
+    rb_define_method( rb_cRMtx2, "coerce", RMtx2_coerce, 1 );
+
+    rb_define_method( rb_cRMtx2, "setElements", RMtx2_setElements, -1 );
+    rb_define_method( rb_cRMtx2, "[]=", RMtx2_setElement, 3 );
+    rb_define_method( rb_cRMtx2, "[]", RMtx2_getElement, 2 );
+
+    rb_define_method( rb_cRMtx2, "e00", RMtx2_get_e00, 0 );
+    rb_define_method( rb_cRMtx2, "e01", RMtx2_get_e01, 0 );
+    rb_define_method( rb_cRMtx2, "e10", RMtx2_get_e10, 0 );
+    rb_define_method( rb_cRMtx2, "e11", RMtx2_get_e11, 0 );
+
+    rb_define_method( rb_cRMtx2, "e00=", RMtx2_set_e00, 1 );
+    rb_define_method( rb_cRMtx2, "e01=", RMtx2_set_e01, 1 );
+    rb_define_method( rb_cRMtx2, "e10=", RMtx2_set_e10, 1 );
+    rb_define_method( rb_cRMtx2, "e11=", RMtx2_set_e11, 1 );
+
+    rb_define_alias( rb_cRMtx2, "setElement", "[]=" );
+    rb_define_alias( rb_cRMtx2, "getElement", "[]"  );
+
+    rb_define_method( rb_cRMtx2, "getRow", RMtx2_getRow, 1 );
+    rb_define_method( rb_cRMtx2, "getColumn", RMtx2_getColumn, 1 );
+    rb_define_method( rb_cRMtx2, "setRow", RMtx2_setRow, 2 );
+    rb_define_method( rb_cRMtx2, "setColumn", RMtx2_setColumn, 2 );
+
+    rb_define_method( rb_cRMtx2, "setZero", RMtx2_setZero, 0 );
+    rb_define_method( rb_cRMtx2, "setIdentity", RMtx2_setIdentity, 0 );
+    rb_define_method( rb_cRMtx2, "getDeterminant", RMtx2_getDeterminant, 0 );
+    rb_define_method( rb_cRMtx2, "getTransposed", RMtx2_transpose, 0 );
+    rb_define_method( rb_cRMtx2, "transpose!", RMtx2_transpose_intrusive, 0 );
+    rb_define_method( rb_cRMtx2, "getInverse", RMtx2_inverse, 0 );
+    rb_define_method( rb_cRMtx2, "invert!", RMtx2_invert, 0 );
+
+    rb_define_method( rb_cRMtx2, "rotation", RMtx2_rotation, 1 );
+    rb_define_method( rb_cRMtx2, "scaling", RMtx2_scaling, 2 );
+
+    rb_define_method( rb_cRMtx2, "+@", RMtx2_op_unary_plus, 0 );
+    rb_define_method( rb_cRMtx2, "-@", RMtx2_op_unary_minus, 0 );
+    rb_define_method( rb_cRMtx2, "+",  RMtx2_op_binary_plus, 1 );
+    rb_define_method( rb_cRMtx2, "-",  RMtx2_op_binary_minus, 1 );
+    rb_define_method( rb_cRMtx2, "*",  RMtx2_op_binary_mult, 1 );
+    rb_define_method( rb_cRMtx2, "==", RMtx2_op_binary_eq, 1 );
+    rb_define_method( rb_cRMtx2, "add!", RMtx2_op_assign_plus, 1 );
+    rb_define_method( rb_cRMtx2, "sub!", RMtx2_op_assign_minus, 1 );
+    rb_define_method( rb_cRMtx2, "mul!", RMtx2_op_assign_mult, 1 );
 
     /********************************************************************************
      * RMtx3
@@ -5896,6 +7619,47 @@ Init_rmath3d()
 
     rb_define_singleton_method( rb_cRQuat, "dot", RQuat_dot, 2 );
     rb_define_singleton_method( rb_cRQuat, "slerp", RQuat_slerp, 3 );
+
+    /********************************************************************************
+     * RVec2
+     ********************************************************************************/
+
+    rb_define_alloc_func( rb_cRVec2, RVec2_allocate );
+
+    rb_define_private_method( rb_cRVec2, "initialize", RVec2_initialize, -1 );
+    rb_define_method( rb_cRVec2, "to_s", RVec2_to_s, 0 );
+    rb_define_method( rb_cRVec2, "inspect", RVec2_inspect, 0 );
+    rb_define_method( rb_cRVec2, "to_a", RVec2_to_a, 0 );
+    rb_define_method( rb_cRVec2, "coerce", RVec2_coerce, 1 );
+
+    rb_define_method( rb_cRVec2, "setElements", RVec2_setElements, 2 );
+    rb_define_method( rb_cRVec2, "[]=", RVec2_setElement, 2 );
+    rb_define_method( rb_cRVec2, "x=", RVec2_setX, 1 );
+    rb_define_method( rb_cRVec2, "y=", RVec2_setY, 1 );
+
+    rb_define_method( rb_cRVec2, "[]", RVec2_getElement, 1 );
+    rb_define_method( rb_cRVec2, "x", RVec2_getX, 0 );
+    rb_define_method( rb_cRVec2, "y", RVec2_getY, 0 );
+
+    rb_define_method( rb_cRVec2, "getLength", RVec2_getLength, 0 );
+    rb_define_method( rb_cRVec2, "getLengthSq", RVec2_getLengthSq, 0 );
+    rb_define_method( rb_cRVec2, "getNormalized", RVec2_normalize, 0 );
+    rb_define_method( rb_cRVec2, "normalize!", RVec2_normalize_intrusive, 0 );
+
+    rb_define_method( rb_cRVec2, "+@", RVec2_op_unary_plus, 0 );
+    rb_define_method( rb_cRVec2, "-@", RVec2_op_unary_minus, 0 );
+    rb_define_method( rb_cRVec2, "+",  RVec2_op_binary_plus, 1 );
+    rb_define_method( rb_cRVec2, "-",  RVec2_op_binary_minus, 1 );
+    rb_define_method( rb_cRVec2, "*",  RVec2_op_binary_mult, 1 );
+    rb_define_method( rb_cRVec2, "==", RVec2_op_binary_eq, 1 );
+    rb_define_method( rb_cRVec2, "add!", RVec2_op_assign_plus, 1 );
+    rb_define_method( rb_cRVec2, "sub!", RVec2_op_assign_minus, 1 );
+    rb_define_method( rb_cRVec2, "mul!", RVec2_op_assign_mult, 1 );
+
+    rb_define_singleton_method( rb_cRVec2, "dot", RVec2_dot, 2 );
+    rb_define_singleton_method( rb_cRVec2, "cross", RVec2_cross, 2 );
+
+    rb_define_method( rb_cRVec2, "transform", RVec2_transform, 1 );
 
     /********************************************************************************
      * RVec3

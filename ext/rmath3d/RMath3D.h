@@ -2,9 +2,11 @@
 #define RMATH_H_INCLUDED
 
 #include "RType.h"
+#include "RVec2.h"
 #include "RVec3.h"
 #include "RVec4.h"
 #include "RQuat.h"
+#include "RMtx2.h"
 #include "RMtx3.h"
 #include "RMtx4.h"
 

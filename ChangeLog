@@ -1,3 +1,7 @@
+2015-04-12  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* RVec2.c|h, RMtx2.c|h: Added.
+
 2014-05-17  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* ext/rmath3d/rmath3d.c: Fixed memory management
