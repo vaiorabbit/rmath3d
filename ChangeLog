@@ -1,6 +1,7 @@
 2015-05-02  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Ruby 1.9.3 and prior versions are no longer supported. Ref.: https://www.ruby-lang.org/en/news/2015/02/23/support-for-ruby-1-9-3-has-ended/
+	* rmath3d.c: Data_Get_Struct -> TypedData_Get_Struct, etc.
 
 2015-04-12  vaiorabbit  <http://twitter.com/vaiorabbit>
 

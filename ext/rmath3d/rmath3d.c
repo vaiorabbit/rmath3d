@@ -33,15 +33,6 @@ VALUE rb_cRMtx4;
 #endif
 #endif /* RMATH_EXPORT */
 
-/* for Ruby 1.8 (C API has no RFLOAT_VALUE macro.) */
-#ifndef RFLOAT_VALUE
-#define RFLOAT_VALUE(v) (RFLOAT(v)->value)
-#endif
-/* for Ruby 1.8 (C API has no DOUBLE2NUM macro) */
-#ifndef DOUBLE2NUM
-#define DOUBLE2NUM(dbl) rb_float_new(dbl)
-#endif
-
 #define IsRVec2(v) rb_obj_is_kind_of( (v), rb_cRVec2 )
 #define IsRVec3(v) rb_obj_is_kind_of( (v), rb_cRVec3 )
 #define IsRVec4(v) rb_obj_is_kind_of( (v), rb_cRVec4 )
@@ -72,7 +63,7 @@ static VALUE RVec4_from_source( RVec4* src );
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RMtx2
+ * Document-class: RMath3D::RMtx2
  * provies 2x2 matrix arithmetic.
  *
  * <b>Notice</b>
@@ -82,28 +73,37 @@ static VALUE RVec4_from_source( RVec4* src );
 static void
 RMtx2_free( void* ptr )
 {
-	xfree( ptr );
+    xfree( ptr );
 }
+
+static size_t
+RMtx2_memsize( const void* ptr )
+{
+    const struct RMtx2* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
+static const rb_data_type_t RMtx2_type = {
+    "RMtx2",
+    {0, RMtx2_free, RMtx2_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 static VALUE
 RMtx2_from_source( RMtx2* src )
 {
-    RMtx2* v = ALLOC( RMtx2 );
-
+    RMtx2* v = ZALLOC( struct RMtx2 );
     RMtx2Copy( v, src );
-
-    return Data_Wrap_Struct( rb_cRMtx2, NULL, RMtx2_free, v );
+    return TypedData_Wrap_Struct( rb_cRMtx2, &RMtx2_type, v );
 }
 
 
 static VALUE
 RMtx2_allocate( VALUE klass )
 {
-    RMtx2* v = ALLOC( RMtx2 );
-
-    memset( v, 0, sizeof(RMtx2) );
-
-    return Data_Wrap_Struct( klass, NULL, RMtx2_free, v );
+    RMtx2* v = ZALLOC( RMtx2 );
+    return TypedData_Wrap_Struct( klass, &RMtx2_type, v );
 }
 
 
@@ -120,7 +120,8 @@ static VALUE
 RMtx2_initialize( int argc, VALUE* argv, VALUE self )
 {
     RMtx2* v = NULL;
-    Data_Get_Struct( self, RMtx2, v );
+
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, v );
 
     switch( argc )
     {
@@ -155,7 +156,7 @@ RMtx2_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RMtx2* other;
-                Data_Get_Struct( arg , RMtx2, other );
+                TypedData_Get_Struct( arg, RMtx2, &RMtx2_type, other );
                 RMtx2Copy( v, other );
                 return self;
             }
@@ -236,7 +237,7 @@ RMtx2_to_s( VALUE self )
     int row, col, n;
     rmReal val;
 
-    Data_Get_Struct( self, RMtx2, v );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, v );
 
     p = dest;
     for ( row = 0; row < 2; ++row )
@@ -280,7 +281,7 @@ RMtx2_to_a( VALUE self )
     int row, col;
     RMtx2* v = NULL;
     VALUE dbl[4];
-    Data_Get_Struct( self, RMtx2, v );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, v );
 
     /* column-major */
     for ( col = 0; col < 2; ++col )
@@ -288,7 +289,7 @@ RMtx2_to_a( VALUE self )
         for ( row = 0; row < 2; ++row )
         {
             int i = 2*col + row;
-            dbl[i] = DOUBLE2NUM(RMtx2GetElement(v,row,col));
+            dbl[i] = DBL2NUM(RMtx2GetElement(v,row,col));
         }
     }
 
@@ -304,7 +305,7 @@ static VALUE
 RMtx2_coerce( VALUE self, VALUE other )
 {
     RMtx2* v = NULL;
-    Data_Get_Struct( self, RMtx2, v );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, v );
 
     switch( TYPE(other) )
     {
@@ -351,7 +352,7 @@ RMtx2_setElements( int argc, VALUE* argv, VALUE self )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     for ( row = 0; row < 2; ++row )
     {
         for ( col = 0; col < 2; ++col )
@@ -376,7 +377,7 @@ RMtx2_setElement( VALUE self, VALUE r, VALUE c, VALUE f )
     int row, col;
     rmReal flt;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     row = FIX2INT(r);
     col = FIX2INT(c);
     flt = NUM2DBL(f);
@@ -398,12 +399,12 @@ RMtx2_getElement( VALUE self, VALUE r, VALUE c )
     int row, col;
     rmReal flt;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     row = FIX2INT(r);
     col = FIX2INT(c);
     flt = RMtx2GetElement( m, row, col );
 
-    return DOUBLE2NUM( flt );
+    return DBL2NUM( flt );
 }
 
 /* Returns the element at row 0 and column 0.
@@ -413,9 +414,9 @@ RMtx2_get_e00( VALUE self )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
-    return DOUBLE2NUM( RMtx2GetElement( m, 0, 0 ) );
+    return DBL2NUM( RMtx2GetElement( m, 0, 0 ) );
 }
 
 /* Returns the element at row 0 and column 1.
@@ -425,9 +426,9 @@ RMtx2_get_e01( VALUE self )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
-    return DOUBLE2NUM( RMtx2GetElement( m, 0, 1 ) );
+    return DBL2NUM( RMtx2GetElement( m, 0, 1 ) );
 }
 
 /* Returns the element at row 1 and column 0.
@@ -437,9 +438,9 @@ RMtx2_get_e10( VALUE self )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
-    return DOUBLE2NUM( RMtx2GetElement( m, 1, 0 ) );
+    return DBL2NUM( RMtx2GetElement( m, 1, 0 ) );
 }
 
 /* Returns the element at row 1 and column 1.
@@ -449,9 +450,9 @@ RMtx2_get_e11( VALUE self )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
-    return DOUBLE2NUM( RMtx2GetElement( m, 1, 1 ) );
+    return DBL2NUM( RMtx2GetElement( m, 1, 1 ) );
 }
 
 /* Replaces the element at row 0 and column 0 by +value+.
@@ -461,7 +462,7 @@ RMtx2_set_e00( VALUE self, VALUE f )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
     RMtx2SetElement( m, 0, 0, NUM2DBL(f) );
 
@@ -475,7 +476,7 @@ RMtx2_set_e01( VALUE self, VALUE f )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
     RMtx2SetElement( m, 0, 1, NUM2DBL(f) );
 
@@ -489,7 +490,7 @@ RMtx2_set_e10( VALUE self, VALUE f )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
     RMtx2SetElement( m, 1, 0, NUM2DBL(f) );
 
@@ -503,7 +504,7 @@ RMtx2_set_e11( VALUE self, VALUE f )
 {
     RMtx2* m;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
 
     RMtx2SetElement( m, 1, 1, NUM2DBL(f) );
 
@@ -523,7 +524,7 @@ RMtx2_getRow( VALUE self, VALUE row )
     int at;
     RVec2 out;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     at = FIX2INT(row);
     RMtx2GetRow( &out, m, at );
 
@@ -542,7 +543,7 @@ RMtx2_getColumn( VALUE self, VALUE column )
     int at;
     RVec2 out;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     at = FIX2INT(column);
     RMtx2GetColumn( &out, m, at );
 
@@ -562,7 +563,7 @@ RMtx2_setRow( VALUE self, VALUE v, VALUE row )
     RVec2* in;
     int at;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     Data_Get_Struct( v, RVec2, in );
     at = FIX2INT(row);
     RMtx2SetRow( m, in, at );
@@ -583,7 +584,7 @@ RMtx2_setColumn( VALUE self, VALUE v, VALUE column )
     RVec2* in;
     int at;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     Data_Get_Struct( v, RVec2, in );
     at = FIX2INT(column);
     RMtx2SetColumn( m, in, at );
@@ -603,7 +604,7 @@ RMtx2_setZero( VALUE self )
 {
     RMtx2* m = NULL;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Zero( m );
 
     return self;
@@ -619,7 +620,7 @@ RMtx2_setIdentity( VALUE self )
 {
     RMtx2* m = NULL;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Identity( m );
 
     return self;
@@ -636,10 +637,10 @@ RMtx2_getDeterminant( VALUE self )
     RMtx2* m = NULL;
     rmReal f;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     f = RMtx2Determinant( m );
 
-    return DOUBLE2NUM( f );
+    return DBL2NUM( f );
 }
 
 /*
@@ -653,7 +654,7 @@ RMtx2_transpose( VALUE self )
     RMtx2* m = NULL;
     RMtx2 out;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Transpose( &out, m );
 
     return RMtx2_from_source( &out );
@@ -669,7 +670,7 @@ RMtx2_transpose_intrusive( VALUE self )
 {
     RMtx2* m = NULL;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Transpose( m, m );
 
     return self;
@@ -686,7 +687,7 @@ RMtx2_inverse( VALUE self )
     RMtx2* m = NULL;
     RMtx2 out;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Inverse( &out, m );
 
     return RMtx2_from_source( &out );
@@ -702,7 +703,7 @@ RMtx2_invert( VALUE self )
 {
     RMtx2* m = NULL;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Inverse( m, m );
 
     return self;
@@ -719,7 +720,7 @@ RMtx2_rotation( VALUE self, VALUE radian )
     RMtx2* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx2Rotation( m, angle_radian );
 
@@ -737,7 +738,7 @@ RMtx2_scaling( VALUE self, VALUE x, VALUE y )
     RMtx2* m = NULL;
     rmReal sx, sy;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     sx = NUM2DBL(x);
     sy = NUM2DBL(y);
     RMtx2Scaling( m, sx, sy );
@@ -767,7 +768,7 @@ RMtx2_op_unary_minus( VALUE self )
     RMtx2* m = NULL;
     RMtx2 out;
 
-    Data_Get_Struct( self, RMtx2, m );
+    TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
     RMtx2Scale( &out, m, (rmReal)(-1) );
 
     return RMtx2_from_source( &out );
@@ -796,8 +797,8 @@ RMtx2_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx2, m1 );
-    Data_Get_Struct( other, RMtx2, m2 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
+    TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
     RMtx2Add( &result, m1, m2 );
 
     return RMtx2_from_source( &result );
@@ -826,8 +827,8 @@ RMtx2_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx2, m1 );
-    Data_Get_Struct( other, RMtx2, m2 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
+    TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
     RMtx2Sub( &result, m1, m2 );
 
     return RMtx2_from_source( &result );
@@ -846,11 +847,11 @@ RMtx2_op_binary_mult( VALUE self, VALUE other )
     rmReal f;
     RMtx2 result;
 
-    Data_Get_Struct( self, RMtx2, m1 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
 
     if ( IsRMtx2(other) )
     {
-        Data_Get_Struct( other, RMtx2, m2 );
+        TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
         RMtx2Mul( &result, m1, m2 );
     }
     else
@@ -884,8 +885,8 @@ RMtx2_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RMtx2, m1 );
-    Data_Get_Struct( other, RMtx2, m2 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
+    TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
 
     if ( !RMtx2Equal(m1,m2) )
         return Qfalse;
@@ -915,8 +916,8 @@ RMtx2_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx2, m1 );
-    Data_Get_Struct( other, RMtx2, m2 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
+    TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
     RMtx2Add( m1, m1, m2 );
 
     return self;
@@ -944,8 +945,8 @@ RMtx2_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx2, m1 );
-    Data_Get_Struct( other, RMtx2, m2 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
+    TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
     RMtx2Sub( m1, m1, m2 );
 
     return self;
@@ -963,11 +964,11 @@ RMtx2_op_assign_mult( VALUE self, VALUE other )
     RMtx2* m2 = NULL;
     rmReal f;
 
-    Data_Get_Struct( self, RMtx2, m1 );
+    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
 
     if ( IsRMtx2(other) )
     {
-        Data_Get_Struct( other, RMtx2, m2 );
+        TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
         RMtx2Mul( m1, m1, m2 );
     }
     else
@@ -987,7 +988,7 @@ RMtx2_op_assign_mult( VALUE self, VALUE other )
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RMtx3
+ * Document-class: RMath3D::RMtx3
  * provies 3x3 matrix arithmetic.
  *
  * <b>Notice</b>
@@ -1204,7 +1205,7 @@ RMtx3_to_a( VALUE self )
         for ( row = 0; row < 3; ++row )
         {
             int i = 3*col + row;
-            dbl[i] = DOUBLE2NUM(RMtx3GetElement(v,row,col));
+            dbl[i] = DBL2NUM(RMtx3GetElement(v,row,col));
         }
     }
 
@@ -1319,7 +1320,7 @@ RMtx3_getElement( VALUE self, VALUE r, VALUE c )
     col = FIX2INT(c);
     flt = RMtx3GetElement( m, row, col );
 
-    return DOUBLE2NUM( flt );
+    return DBL2NUM( flt );
 }
 
 /* Returns the element at row 0 and column 0.
@@ -1331,7 +1332,7 @@ RMtx3_get_e00( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 0, 0 ) );
+    return DBL2NUM( RMtx3GetElement( m, 0, 0 ) );
 }
 
 /* Returns the element at row 0 and column 1.
@@ -1343,7 +1344,7 @@ RMtx3_get_e01( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 0, 1 ) );
+    return DBL2NUM( RMtx3GetElement( m, 0, 1 ) );
 }
 
 /* Returns the element at row 0 and column 2.
@@ -1355,7 +1356,7 @@ RMtx3_get_e02( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 0, 2 ) );
+    return DBL2NUM( RMtx3GetElement( m, 0, 2 ) );
 }
 
 /* Returns the element at row 1 and column 0.
@@ -1367,7 +1368,7 @@ RMtx3_get_e10( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 1, 0 ) );
+    return DBL2NUM( RMtx3GetElement( m, 1, 0 ) );
 }
 
 /* Returns the element at row 1 and column 1.
@@ -1379,7 +1380,7 @@ RMtx3_get_e11( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 1, 1 ) );
+    return DBL2NUM( RMtx3GetElement( m, 1, 1 ) );
 }
 
 /* Returns the element at row 1 and column 2.
@@ -1391,7 +1392,7 @@ RMtx3_get_e12( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 1, 2 ) );
+    return DBL2NUM( RMtx3GetElement( m, 1, 2 ) );
 }
 
 /* Returns the element at row 2 and column 0.
@@ -1403,7 +1404,7 @@ RMtx3_get_e20( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 2, 0 ) );
+    return DBL2NUM( RMtx3GetElement( m, 2, 0 ) );
 }
 
 /* Returns the element at row 2 and column 1.
@@ -1415,7 +1416,7 @@ RMtx3_get_e21( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 2, 1 ) );
+    return DBL2NUM( RMtx3GetElement( m, 2, 1 ) );
 }
 
 /* Returns the element at row 2 and column 2.
@@ -1427,7 +1428,7 @@ RMtx3_get_e22( VALUE self )
 
     Data_Get_Struct( self, RMtx3, m );
 
-    return DOUBLE2NUM( RMtx3GetElement( m, 2, 2 ) );
+    return DBL2NUM( RMtx3GetElement( m, 2, 2 ) );
 }
 
 
@@ -1687,7 +1688,7 @@ RMtx3_getDeterminant( VALUE self )
     Data_Get_Struct( self, RMtx3, m );
     f = RMtx3Determinant( m );
 
-    return DOUBLE2NUM( f );
+    return DBL2NUM( f );
 }
 
 /*
@@ -2110,7 +2111,7 @@ RMtx3_op_assign_mult( VALUE self, VALUE other )
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RMtx4
+ * Document-class: RMath3D::RMtx4
  * provies 4x4 matrix arithmetic.
  *
  * <b>Notice</b>
@@ -2330,7 +2331,7 @@ RMtx4_to_a( VALUE self )
         for ( row = 0; row < 4; ++row )
         {
             int i = 4*col + row;
-            dbl[i] = DOUBLE2NUM(RMtx4GetElement(v,row,col));
+            dbl[i] = DBL2NUM(RMtx4GetElement(v,row,col));
         }
     }
 
@@ -2445,7 +2446,7 @@ RMtx4_getElement( VALUE self, VALUE r, VALUE c )
     col = FIX2INT(c);
     flt = RMtx4GetElement( m, row, col );
 
-    return DOUBLE2NUM( flt );
+    return DBL2NUM( flt );
 }
 
 /* Returns the element at row 0 and column 0.
@@ -2457,7 +2458,7 @@ RMtx4_get_e00( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 0, 0 ) );
+    return DBL2NUM( RMtx4GetElement( m, 0, 0 ) );
 }
 
 
@@ -2470,7 +2471,7 @@ RMtx4_get_e01( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 0, 1 ) );
+    return DBL2NUM( RMtx4GetElement( m, 0, 1 ) );
 }
 
 
@@ -2483,7 +2484,7 @@ RMtx4_get_e02( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 0, 2 ) );
+    return DBL2NUM( RMtx4GetElement( m, 0, 2 ) );
 }
 
 
@@ -2496,7 +2497,7 @@ RMtx4_get_e03( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 0, 3 ) );
+    return DBL2NUM( RMtx4GetElement( m, 0, 3 ) );
 }
 
 
@@ -2509,7 +2510,7 @@ RMtx4_get_e10( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 1, 0 ) );
+    return DBL2NUM( RMtx4GetElement( m, 1, 0 ) );
 }
 
 
@@ -2522,7 +2523,7 @@ RMtx4_get_e11( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 1, 1 ) );
+    return DBL2NUM( RMtx4GetElement( m, 1, 1 ) );
 }
 
 
@@ -2535,7 +2536,7 @@ RMtx4_get_e12( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 1, 2 ) );
+    return DBL2NUM( RMtx4GetElement( m, 1, 2 ) );
 }
 
 
@@ -2548,7 +2549,7 @@ RMtx4_get_e13( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 1, 3 ) );
+    return DBL2NUM( RMtx4GetElement( m, 1, 3 ) );
 }
 
 
@@ -2561,7 +2562,7 @@ RMtx4_get_e20( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 2, 0 ) );
+    return DBL2NUM( RMtx4GetElement( m, 2, 0 ) );
 }
 
 
@@ -2574,7 +2575,7 @@ RMtx4_get_e21( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 2, 1 ) );
+    return DBL2NUM( RMtx4GetElement( m, 2, 1 ) );
 }
 
 
@@ -2587,7 +2588,7 @@ RMtx4_get_e22( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 2, 2 ) );
+    return DBL2NUM( RMtx4GetElement( m, 2, 2 ) );
 }
 
 
@@ -2600,7 +2601,7 @@ RMtx4_get_e23( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 2, 3 ) );
+    return DBL2NUM( RMtx4GetElement( m, 2, 3 ) );
 }
 
 
@@ -2613,7 +2614,7 @@ RMtx4_get_e30( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 3, 0 ) );
+    return DBL2NUM( RMtx4GetElement( m, 3, 0 ) );
 }
 
 
@@ -2626,7 +2627,7 @@ RMtx4_get_e31( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 3, 1 ) );
+    return DBL2NUM( RMtx4GetElement( m, 3, 1 ) );
 }
 
 
@@ -2639,7 +2640,7 @@ RMtx4_get_e32( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 3, 2 ) );
+    return DBL2NUM( RMtx4GetElement( m, 3, 2 ) );
 }
 
 
@@ -2652,7 +2653,7 @@ RMtx4_get_e33( VALUE self )
 
     Data_Get_Struct( self, RMtx4, m );
 
-    return DOUBLE2NUM( RMtx4GetElement( m, 3, 3 ) );
+    return DBL2NUM( RMtx4GetElement( m, 3, 3 ) );
 }
 
 /* Replaces the element at row 0 and column 0 by +value+.
@@ -3060,7 +3061,7 @@ RMtx4_getDeterminant( VALUE self )
     Data_Get_Struct( self, RMtx4, m );
     f = RMtx4Determinant( m );
 
-    return DOUBLE2NUM( f );
+    return DBL2NUM( f );
 }
 
 /*
@@ -3664,7 +3665,7 @@ RMtx4_op_assign_mult( VALUE self, VALUE other )
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RQuat
+ * Document-class: RMath3D::RQuat
  * provies quaternion arithmetic.
  */
 
@@ -3857,10 +3858,10 @@ RQuat_to_a( VALUE self )
     VALUE dbl[4];
     Data_Get_Struct( self, RQuat, v );
 
-    dbl[0] = DOUBLE2NUM(RQuatGetElement(v,0));
-    dbl[1] = DOUBLE2NUM(RQuatGetElement(v,1));
-    dbl[2] = DOUBLE2NUM(RQuatGetElement(v,2));
-    dbl[3] = DOUBLE2NUM(RQuatGetElement(v,3));
+    dbl[0] = DBL2NUM(RQuatGetElement(v,0));
+    dbl[1] = DBL2NUM(RQuatGetElement(v,1));
+    dbl[2] = DBL2NUM(RQuatGetElement(v,2));
+    dbl[3] = DBL2NUM(RQuatGetElement(v,3));
 
     return rb_ary_new4( 4, dbl );
 }
@@ -4056,7 +4057,7 @@ RQuat_getElement( VALUE self, VALUE i )
     at = FIX2INT(i);
     flt0 = RQuatGetElement( v, at );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4073,7 +4074,7 @@ RQuat_getX( VALUE self )
     Data_Get_Struct( self, RQuat, v );
     flt0 = RQuatGetX( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4090,7 +4091,7 @@ RQuat_getY( VALUE self )
     Data_Get_Struct( self, RQuat, v );
     flt0 = RQuatGetY( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4107,7 +4108,7 @@ RQuat_getZ( VALUE self )
     Data_Get_Struct( self, RQuat, v );
     flt0 = RQuatGetZ( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4124,7 +4125,7 @@ RQuat_getW( VALUE self )
     Data_Get_Struct( self, RQuat, v );
     flt0 = RQuatGetW( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4159,7 +4160,7 @@ RQuat_getLength( VALUE self )
     Data_Get_Struct( self, RQuat, v );
     flt0 = RQuatLength( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4176,7 +4177,7 @@ RQuat_getLengthSq( VALUE self )
     Data_Get_Struct( self, RQuat, v );
     flt0 = RQuatLengthSq( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -4195,7 +4196,7 @@ RQuat_dot( VALUE self, VALUE q1, VALUE q2 )
     Data_Get_Struct( q2, RQuat, quat2 );
     result = RQuatDot( quat1, quat2 );
 
-    return DOUBLE2NUM( result );
+    return DBL2NUM( result );
 }
 
 /*
@@ -4656,7 +4657,7 @@ RQuat_toAxisAngle( VALUE self )
 
     RQuatToAxisAngle( q, &axis, &radian );
 
-    return rb_ary_new3( 2, RVec3_from_source(&axis), DOUBLE2NUM(radian) );
+    return rb_ary_new3( 2, RVec3_from_source(&axis), DBL2NUM(radian) );
 }
 
 
@@ -4667,7 +4668,7 @@ RQuat_toAxisAngle( VALUE self )
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RVec2
+ * Document-class: RMath3D::RVec2
  * provies 3 element vector arithmetic.
  */
 
@@ -4860,8 +4861,8 @@ RVec2_to_a( VALUE self )
     VALUE dbl[2];
     Data_Get_Struct( self, RVec2, v );
 
-    dbl[0] = DOUBLE2NUM(RVec2GetElement(v,0));
-    dbl[1] = DOUBLE2NUM(RVec2GetElement(v,1));
+    dbl[0] = DBL2NUM(RVec2GetElement(v,0));
+    dbl[1] = DBL2NUM(RVec2GetElement(v,1));
 
     return rb_ary_new4( 2, dbl );
 }
@@ -4998,7 +4999,7 @@ RVec2_getElement( VALUE self, VALUE i )
     at = FIX2INT(i);
     flt0 = RVec2GetElement( v, at );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5015,7 +5016,7 @@ RVec2_getX( VALUE self )
     Data_Get_Struct( self, RVec2, v );
     flt0 = RVec2GetX( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5032,7 +5033,7 @@ RVec2_getY( VALUE self )
     Data_Get_Struct( self, RVec2, v );
     flt0 = RVec2GetY( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5049,7 +5050,7 @@ RVec2_getLength( VALUE self )
     Data_Get_Struct( self, RVec2, v );
     flt0 = RVec2Length( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5066,7 +5067,7 @@ RVec2_getLengthSq( VALUE self )
     Data_Get_Struct( self, RVec2, v );
     flt0 = RVec2LengthSq( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5085,7 +5086,7 @@ RVec2_dot( VALUE self, VALUE v1, VALUE v2 )
     Data_Get_Struct( v2, RVec2, vec2 );
     result = RVec2Dot( vec1, vec2 );
 
-    return DOUBLE2NUM( result );
+    return DBL2NUM( result );
 }
 
 /*
@@ -5104,7 +5105,7 @@ RVec2_cross( VALUE self, VALUE v1, VALUE v2 )
     Data_Get_Struct( v2, RVec2, vec2 );
     result = RVec2Cross( vec1, vec2 );
 
-    return DOUBLE2NUM( result );
+    return DBL2NUM( result );
 }
 
 /*
@@ -5121,7 +5122,7 @@ RVec2_transform( VALUE self, VALUE mtx )
     RVec2 out;
 
     Data_Get_Struct( self, RVec2, v );
-    Data_Get_Struct( mtx, RMtx2, m );
+    TypedData_Get_Struct( mtx, RMtx2, &RMtx2_type, m );
     RVec2Transform( &out, m, v );
 
     return RVec2_from_source( &out );
@@ -5412,7 +5413,7 @@ RVec2_op_assign_mult( VALUE self, VALUE other )
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RVec3
+ * Document-class: RMath3D::RVec3
  * provies 3 element vector arithmetic.
  */
 
@@ -5605,9 +5606,9 @@ RVec3_to_a( VALUE self )
     VALUE dbl[3];
     Data_Get_Struct( self, RVec3, v );
 
-    dbl[0] = DOUBLE2NUM(RVec3GetElement(v,0));
-    dbl[1] = DOUBLE2NUM(RVec3GetElement(v,1));
-    dbl[2] = DOUBLE2NUM(RVec3GetElement(v,2));
+    dbl[0] = DBL2NUM(RVec3GetElement(v,0));
+    dbl[1] = DBL2NUM(RVec3GetElement(v,1));
+    dbl[2] = DBL2NUM(RVec3GetElement(v,2));
 
     return rb_ary_new4( 3, dbl );
 }
@@ -5764,7 +5765,7 @@ RVec3_getElement( VALUE self, VALUE i )
     at = FIX2INT(i);
     flt0 = RVec3GetElement( v, at );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5781,7 +5782,7 @@ RVec3_getX( VALUE self )
     Data_Get_Struct( self, RVec3, v );
     flt0 = RVec3GetX( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5798,7 +5799,7 @@ RVec3_getY( VALUE self )
     Data_Get_Struct( self, RVec3, v );
     flt0 = RVec3GetY( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5815,7 +5816,7 @@ RVec3_getZ( VALUE self )
     Data_Get_Struct( self, RVec3, v );
     flt0 = RVec3GetZ( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5832,7 +5833,7 @@ RVec3_getLength( VALUE self )
     Data_Get_Struct( self, RVec3, v );
     flt0 = RVec3Length( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5849,7 +5850,7 @@ RVec3_getLengthSq( VALUE self )
     Data_Get_Struct( self, RVec3, v );
     flt0 = RVec3LengthSq( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -5868,7 +5869,7 @@ RVec3_dot( VALUE self, VALUE v1, VALUE v2 )
     Data_Get_Struct( v2, RVec3, vec2 );
     result = RVec3Dot( vec1, vec2 );
 
-    return DOUBLE2NUM( result );
+    return DBL2NUM( result );
 }
 
 /*
@@ -6412,7 +6413,7 @@ RVec3_op_assign_mult( VALUE self, VALUE other )
  ********************************************************************************/
 
 /*
- * Document-class: RMath::RVec4
+ * Document-class: RMath3D::RVec4
  * provies 4 element vector arithmetic.
  */
 
@@ -6613,10 +6614,10 @@ RVec4_to_a( VALUE self )
     VALUE dbl[4];
     Data_Get_Struct( self, RVec4, v );
 
-    dbl[0] = DOUBLE2NUM(RVec4GetElement(v,0));
-    dbl[1] = DOUBLE2NUM(RVec4GetElement(v,1));
-    dbl[2] = DOUBLE2NUM(RVec4GetElement(v,2));
-    dbl[3] = DOUBLE2NUM(RVec4GetElement(v,3));
+    dbl[0] = DBL2NUM(RVec4GetElement(v,0));
+    dbl[1] = DBL2NUM(RVec4GetElement(v,1));
+    dbl[2] = DBL2NUM(RVec4GetElement(v,2));
+    dbl[3] = DBL2NUM(RVec4GetElement(v,3));
 
     return rb_ary_new4( 4, dbl );
 }
@@ -6812,7 +6813,7 @@ RVec4_getElement( VALUE self, VALUE i )
     at = FIX2INT(i);
     flt0 = RVec4GetElement( v, at );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6829,7 +6830,7 @@ RVec4_getX( VALUE self )
     Data_Get_Struct( self, RVec4, v );
     flt0 = RVec4GetX( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6846,7 +6847,7 @@ RVec4_getY( VALUE self )
     Data_Get_Struct( self, RVec4, v );
     flt0 = RVec4GetY( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6863,7 +6864,7 @@ RVec4_getZ( VALUE self )
     Data_Get_Struct( self, RVec4, v );
     flt0 = RVec4GetZ( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6880,7 +6881,7 @@ RVec4_getW( VALUE self )
     Data_Get_Struct( self, RVec4, v );
     flt0 = RVec4GetW( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6915,7 +6916,7 @@ RVec4_getLength( VALUE self )
     Data_Get_Struct( self, RVec4, v );
     flt0 = RVec4Length( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6932,7 +6933,7 @@ RVec4_getLengthSq( VALUE self )
     Data_Get_Struct( self, RVec4, v );
     flt0 = RVec4LengthSq( v );
 
-    return DOUBLE2NUM( flt0 );
+    return DBL2NUM( flt0 );
 }
 
 /*
@@ -6951,7 +6952,7 @@ RVec4_dot( VALUE self, VALUE v1, VALUE v2 )
     Data_Get_Struct( v2, RVec4, vec2 );
     result = RVec4Dot( vec1, vec2 );
 
-    return DOUBLE2NUM( result );
+    return DBL2NUM( result );
 }
 
 /*
@@ -7346,7 +7347,7 @@ Init_rmath3d()
     rb_cRMtx3 = rb_define_class_under( rb_mRMath, "RMtx3", rb_cObject );
     rb_cRMtx4 = rb_define_class_under( rb_mRMath, "RMtx4", rb_cObject );
 
-    rb_define_const( rb_mRMath, "TOLERANCE", DOUBLE2NUM(RMATH_TOLERANCE) );
+    rb_define_const( rb_mRMath, "TOLERANCE", DBL2NUM(RMATH_TOLERANCE) );
 
     /********************************************************************************
      * RMtx2
