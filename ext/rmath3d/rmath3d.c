@@ -41,6 +41,77 @@ VALUE rb_cRMtx4;
 #define IsRMtx3(v) rb_obj_is_kind_of( (v), rb_cRMtx3 )
 #define IsRMtx4(v) rb_obj_is_kind_of( (v), rb_cRMtx4 )
 
+static void RVec2_free( void* ptr );
+static size_t RVec2_memsize( const void* ptr );
+
+static void RVec3_free( void* ptr );
+static size_t RVec3_memsize( const void* ptr );
+
+static void RVec4_free( void* ptr );
+static size_t RVec4_memsize( const void* ptr );
+
+static void RQuat_free( void* ptr );
+static size_t RQuat_memsize( const void* ptr );
+
+static void RMtx2_free( void* ptr );
+static size_t RMtx2_memsize( const void* ptr );
+
+static void RMtx3_free( void* ptr );
+static size_t RMtx3_memsize( const void* ptr );
+
+static void RMtx4_free( void* ptr );
+static size_t RMtx4_memsize( const void* ptr );
+
+static const rb_data_type_t RVec2_type = {
+    "RVec2",
+    {0, RVec2_free, RVec2_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+static const rb_data_type_t RVec3_type = {
+    "RVec3",
+    {0, RVec3_free, RVec3_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+static const rb_data_type_t RVec4_type = {
+    "RVec4",
+    {0, RVec4_free, RVec4_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+static const rb_data_type_t RQuat_type = {
+    "RQuat",
+    {0, RQuat_free, RQuat_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+static const rb_data_type_t RMtx2_type = {
+    "RMtx2",
+    {0, RMtx2_free, RMtx2_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+static const rb_data_type_t RMtx3_type = {
+    "RMtx3",
+    {0, RMtx3_free, RMtx3_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+static const rb_data_type_t RMtx4_type = {
+    "RMtx4",
+    {0, RMtx4_free, RMtx4_memsize,},
+    0, 0,
+    RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+
 #ifdef RMATH_SINGLE_PRECISION
 #   define RMATH_FVAL_FMT "%#.6g"
 #else
@@ -82,13 +153,6 @@ RMtx2_memsize( const void* ptr )
     const struct RMtx2* data = ptr;
     return data ? sizeof(*data) : 0;
 }
-
-static const rb_data_type_t RMtx2_type = {
-    "RMtx2",
-    {0, RMtx2_free, RMtx2_memsize,},
-    0, 0,
-    RUBY_TYPED_FREE_IMMEDIATELY,
-};
 
 static VALUE
 RMtx2_from_source( RMtx2* src )
@@ -564,7 +628,7 @@ RMtx2_setRow( VALUE self, VALUE v, VALUE row )
     int at;
 
     TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
-    Data_Get_Struct( v, RVec2, in );
+    TypedData_Get_Struct( v, RVec2, &RVec2_type, in );
     at = FIX2INT(row);
     RMtx2SetRow( m, in, at );
 
@@ -585,7 +649,7 @@ RMtx2_setColumn( VALUE self, VALUE v, VALUE column )
     int at;
 
     TypedData_Get_Struct( self, RMtx2, &RMtx2_type, m );
-    Data_Get_Struct( v, RVec2, in );
+    TypedData_Get_Struct( v, RVec2, &RVec2_type, in );
     at = FIX2INT(column);
     RMtx2SetColumn( m, in, at );
 
@@ -1001,25 +1065,27 @@ RMtx3_free( void* ptr )
 	xfree( ptr );
 }
 
+static size_t
+RMtx3_memsize( const void* ptr )
+{
+    const struct RMtx3* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
 static VALUE
 RMtx3_from_source( RMtx3* src )
 {
-    RMtx3* v = ALLOC( RMtx3 );
-
+    RMtx3* v = ZALLOC( struct RMtx3 );
     RMtx3Copy( v, src );
-
-    return Data_Wrap_Struct( rb_cRMtx3, NULL, RMtx3_free, v );
+    return TypedData_Wrap_Struct( rb_cRMtx3, &RMtx3_type, v );
 }
 
 
 static VALUE
 RMtx3_allocate( VALUE klass )
 {
-    RMtx3* v = ALLOC( RMtx3 );
-
-    memset( v, 0, sizeof(RMtx3) );
-
-    return Data_Wrap_Struct( klass, NULL, RMtx3_free, v );
+    RMtx3* v = ZALLOC( RMtx3 );
+    return TypedData_Wrap_Struct( klass, &RMtx3_type, v );
 }
 
 
@@ -1036,7 +1102,7 @@ static VALUE
 RMtx3_initialize( int argc, VALUE* argv, VALUE self )
 {
     RMtx3* v = NULL;
-    Data_Get_Struct( self, RMtx3, v );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, v );
 
     switch( argc )
     {
@@ -1072,7 +1138,7 @@ RMtx3_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RMtx3* other;
-                Data_Get_Struct( arg , RMtx3, other );
+                TypedData_Get_Struct( arg , RMtx3, &RMtx3_type, other );
                 RMtx3Copy( v, other );
                 return self;
             }
@@ -1153,7 +1219,7 @@ RMtx3_to_s( VALUE self )
     int row, col, n;
     rmReal val;
 
-    Data_Get_Struct( self, RMtx3, v );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, v );
 
     p = dest;
     for ( row = 0; row < 3; ++row )
@@ -1197,7 +1263,7 @@ RMtx3_to_a( VALUE self )
     int row, col;
     RMtx3* v = NULL;
     VALUE dbl[9];
-    Data_Get_Struct( self, RMtx3, v );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, v );
 
     /* column-major */
     for ( col = 0; col < 3; ++col )
@@ -1221,7 +1287,7 @@ static VALUE
 RMtx3_coerce( VALUE self, VALUE other )
 {
     RMtx3* v = NULL;
-    Data_Get_Struct( self, RMtx3, v );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, v );
 
     switch( TYPE(other) )
     {
@@ -1268,7 +1334,7 @@ RMtx3_setElements( int argc, VALUE* argv, VALUE self )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     for ( row = 0; row < 3; ++row )
     {
         for ( col = 0; col < 3; ++col )
@@ -1293,7 +1359,7 @@ RMtx3_setElement( VALUE self, VALUE r, VALUE c, VALUE f )
     int row, col;
     rmReal flt;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     row = FIX2INT(r);
     col = FIX2INT(c);
     flt = NUM2DBL(f);
@@ -1315,7 +1381,7 @@ RMtx3_getElement( VALUE self, VALUE r, VALUE c )
     int row, col;
     rmReal flt;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     row = FIX2INT(r);
     col = FIX2INT(c);
     flt = RMtx3GetElement( m, row, col );
@@ -1330,7 +1396,7 @@ RMtx3_get_e00( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 0, 0 ) );
 }
@@ -1342,7 +1408,7 @@ RMtx3_get_e01( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 0, 1 ) );
 }
@@ -1354,7 +1420,7 @@ RMtx3_get_e02( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 0, 2 ) );
 }
@@ -1366,7 +1432,7 @@ RMtx3_get_e10( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 1, 0 ) );
 }
@@ -1378,7 +1444,7 @@ RMtx3_get_e11( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 1, 1 ) );
 }
@@ -1390,7 +1456,7 @@ RMtx3_get_e12( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 1, 2 ) );
 }
@@ -1402,7 +1468,7 @@ RMtx3_get_e20( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 2, 0 ) );
 }
@@ -1414,7 +1480,7 @@ RMtx3_get_e21( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 2, 1 ) );
 }
@@ -1426,7 +1492,7 @@ RMtx3_get_e22( VALUE self )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     return DBL2NUM( RMtx3GetElement( m, 2, 2 ) );
 }
@@ -1439,7 +1505,7 @@ RMtx3_set_e00( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 0, 0, NUM2DBL(f) );
 
@@ -1453,7 +1519,7 @@ RMtx3_set_e01( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 0, 1, NUM2DBL(f) );
 
@@ -1467,7 +1533,7 @@ RMtx3_set_e02( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 0, 2, NUM2DBL(f) );
 
@@ -1481,7 +1547,7 @@ RMtx3_set_e10( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 1, 0, NUM2DBL(f) );
 
@@ -1495,7 +1561,7 @@ RMtx3_set_e11( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 1, 1, NUM2DBL(f) );
 
@@ -1509,7 +1575,7 @@ RMtx3_set_e12( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 1, 2, NUM2DBL(f) );
 
@@ -1523,7 +1589,7 @@ RMtx3_set_e20( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 2, 0, NUM2DBL(f) );
 
@@ -1537,7 +1603,7 @@ RMtx3_set_e21( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 2, 1, NUM2DBL(f) );
 
@@ -1551,7 +1617,7 @@ RMtx3_set_e22( VALUE self, VALUE f )
 {
     RMtx3* m;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
 
     RMtx3SetElement( m, 2, 2, NUM2DBL(f) );
 
@@ -1572,7 +1638,7 @@ RMtx3_getRow( VALUE self, VALUE row )
     int at;
     RVec3 out;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     at = FIX2INT(row);
     RMtx3GetRow( &out, m, at );
 
@@ -1591,7 +1657,7 @@ RMtx3_getColumn( VALUE self, VALUE column )
     int at;
     RVec3 out;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     at = FIX2INT(column);
     RMtx3GetColumn( &out, m, at );
 
@@ -1611,8 +1677,8 @@ RMtx3_setRow( VALUE self, VALUE v, VALUE row )
     RVec3* in;
     int at;
 
-    Data_Get_Struct( self, RMtx3, m );
-    Data_Get_Struct( v, RVec3, in );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
+    TypedData_Get_Struct( v, RVec3, &RVec3_type, in );
     at = FIX2INT(row);
     RMtx3SetRow( m, in, at );
 
@@ -1632,8 +1698,8 @@ RMtx3_setColumn( VALUE self, VALUE v, VALUE column )
     RVec3* in;
     int at;
 
-    Data_Get_Struct( self, RMtx3, m );
-    Data_Get_Struct( v, RVec3, in );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
+    TypedData_Get_Struct( v, RVec3, &RVec3_type, in );
     at = FIX2INT(column);
     RMtx3SetColumn( m, in, at );
 
@@ -1652,7 +1718,7 @@ RMtx3_setZero( VALUE self )
 {
     RMtx3* m = NULL;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Zero( m );
 
     return self;
@@ -1668,7 +1734,7 @@ RMtx3_setIdentity( VALUE self )
 {
     RMtx3* m = NULL;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Identity( m );
 
     return self;
@@ -1685,7 +1751,7 @@ RMtx3_getDeterminant( VALUE self )
     RMtx3* m = NULL;
     rmReal f;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     f = RMtx3Determinant( m );
 
     return DBL2NUM( f );
@@ -1702,7 +1768,7 @@ RMtx3_transpose( VALUE self )
     RMtx3* m = NULL;
     RMtx3 out;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Transpose( &out, m );
 
     return RMtx3_from_source( &out );
@@ -1718,7 +1784,7 @@ RMtx3_transpose_intrusive( VALUE self )
 {
     RMtx3* m = NULL;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Transpose( m, m );
 
     return self;
@@ -1735,7 +1801,7 @@ RMtx3_inverse( VALUE self )
     RMtx3* m = NULL;
     RMtx3 out;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Inverse( &out, m );
 
     return RMtx3_from_source( &out );
@@ -1751,7 +1817,7 @@ RMtx3_invert( VALUE self )
 {
     RMtx3* m = NULL;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Inverse( m, m );
 
     return self;
@@ -1768,7 +1834,7 @@ RMtx3_rotationX( VALUE self, VALUE radian )
     RMtx3* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx3RotationX( m, angle_radian );
 
@@ -1786,7 +1852,7 @@ RMtx3_rotationY( VALUE self, VALUE radian )
     RMtx3* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx3RotationY( m, angle_radian );
 
@@ -1804,7 +1870,7 @@ RMtx3_rotationZ( VALUE self, VALUE radian )
     RMtx3* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx3RotationZ( m, angle_radian );
 
@@ -1823,8 +1889,8 @@ RMtx3_rotationAxis( VALUE self, VALUE axis, VALUE radian )
     RVec3* vAxis = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx3, m );
-    Data_Get_Struct( axis, RVec3, vAxis );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
+    TypedData_Get_Struct( axis, RVec3, &RVec3_type, vAxis );
     angle_radian = NUM2DBL(radian);
     RMtx3RotationAxis( m, vAxis, angle_radian );
 
@@ -1842,8 +1908,8 @@ RMtx3_rotationQuaternion( VALUE self, VALUE quat )
     RMtx3* m = NULL;
     RQuat* q = NULL;
 
-    Data_Get_Struct( self, RMtx3, m );
-    Data_Get_Struct( quat, RQuat, q );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
+    TypedData_Get_Struct( quat, RQuat, &RQuat_type, q );
     RMtx3RotationQuaternion( m, q );
 
     return self;
@@ -1860,7 +1926,7 @@ RMtx3_scaling( VALUE self, VALUE x, VALUE y, VALUE z )
     RMtx3* m = NULL;
     rmReal sx, sy, sz;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     sx = NUM2DBL(x);
     sy = NUM2DBL(y);
     sz = NUM2DBL(z);
@@ -1891,7 +1957,7 @@ RMtx3_op_unary_minus( VALUE self )
     RMtx3* m = NULL;
     RMtx3 out;
 
-    Data_Get_Struct( self, RMtx3, m );
+    TypedData_Get_Struct( self, RMtx3, &RMtx3_type, m );
     RMtx3Scale( &out, m, (rmReal)(-1) );
 
     return RMtx3_from_source( &out );
@@ -1920,8 +1986,8 @@ RMtx3_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx3, m1 );
-    Data_Get_Struct( other, RMtx3, m2 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
+    TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
     RMtx3Add( &result, m1, m2 );
 
     return RMtx3_from_source( &result );
@@ -1950,8 +2016,8 @@ RMtx3_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx3, m1 );
-    Data_Get_Struct( other, RMtx3, m2 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
+    TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
     RMtx3Sub( &result, m1, m2 );
 
     return RMtx3_from_source( &result );
@@ -1970,11 +2036,11 @@ RMtx3_op_binary_mult( VALUE self, VALUE other )
     rmReal f;
     RMtx3 result;
 
-    Data_Get_Struct( self, RMtx3, m1 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
 
     if ( IsRMtx3(other) )
     {
-        Data_Get_Struct( other, RMtx3, m2 );
+        TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
         RMtx3Mul( &result, m1, m2 );
     }
     else
@@ -2008,8 +2074,8 @@ RMtx3_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RMtx3, m1 );
-    Data_Get_Struct( other, RMtx3, m2 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
+    TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
 
     if ( !RMtx3Equal(m1,m2) )
         return Qfalse;
@@ -2039,8 +2105,8 @@ RMtx3_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx3, m1 );
-    Data_Get_Struct( other, RMtx3, m2 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
+    TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
     RMtx3Add( m1, m1, m2 );
 
     return self;
@@ -2068,8 +2134,8 @@ RMtx3_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx3, m1 );
-    Data_Get_Struct( other, RMtx3, m2 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
+    TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
     RMtx3Sub( m1, m1, m2 );
 
     return self;
@@ -2087,11 +2153,11 @@ RMtx3_op_assign_mult( VALUE self, VALUE other )
     RMtx3* m2 = NULL;
     rmReal f;
 
-    Data_Get_Struct( self, RMtx3, m1 );
+    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
 
     if ( IsRMtx3(other) )
     {
-        Data_Get_Struct( other, RMtx3, m2 );
+        TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
         RMtx3Mul( m1, m1, m2 );
     }
     else
@@ -2124,25 +2190,27 @@ RMtx4_free( void* ptr )
 	xfree( ptr );
 }
 
+static size_t
+RMtx4_memsize( const void* ptr )
+{
+    const struct RMtx4* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
 static VALUE
 RMtx4_from_source( RMtx4* src )
 {
-    RMtx4* v = ALLOC( RMtx4 );
-
+    RMtx4* v = ZALLOC( struct RMtx4 );
     RMtx4Copy( v, src );
-
-    return Data_Wrap_Struct( rb_cRMtx4, NULL, RMtx4_free, v );
+    return TypedData_Wrap_Struct( rb_cRMtx4, &RMtx4_type, v );
 }
 
 
 static VALUE
 RMtx4_allocate( VALUE klass )
 {
-    RMtx4* v = ALLOC( RMtx4 );
-
-    memset( v, 0, sizeof(RMtx4) );
-
-    return Data_Wrap_Struct( klass, NULL, RMtx4_free, v );
+    RMtx4* v = ZALLOC( RMtx4 );
+    return TypedData_Wrap_Struct( klass, &RMtx4_type, v );
 }
 
 
@@ -2159,7 +2227,7 @@ static VALUE
 RMtx4_initialize( int argc, VALUE* argv, VALUE self )
 {
     RMtx4* v = NULL;
-    Data_Get_Struct( self, RMtx4, v );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, v );
 
     switch( argc )
     {
@@ -2196,7 +2264,7 @@ RMtx4_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RMtx4* other;
-                Data_Get_Struct( arg , RMtx4, other );
+                TypedData_Get_Struct( arg , RMtx4, &RMtx4_type, other );
                 RMtx4Copy( v, other );
                 return self;
             }
@@ -2277,7 +2345,7 @@ RMtx4_to_s( VALUE self )
     int row, col, n;
     rmReal val;
 
-    Data_Get_Struct( self, RMtx4, v );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, v );
 
     p = dest;
     for ( row = 0; row < 4; ++row )
@@ -2323,7 +2391,7 @@ RMtx4_to_a( VALUE self )
     int row, col;
     RMtx4* v = NULL;
     VALUE dbl[16];
-    Data_Get_Struct( self, RMtx4, v );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, v );
 
     /* column-major */
     for ( col = 0; col < 4; ++col )
@@ -2347,7 +2415,7 @@ static VALUE
 RMtx4_coerce( VALUE self, VALUE other )
 {
     RMtx4* v = NULL;
-    Data_Get_Struct( self, RMtx4, v );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, v );
 
     switch( TYPE(other) )
     {
@@ -2394,7 +2462,7 @@ RMtx4_setElements( int argc, VALUE* argv, VALUE self )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     for ( row = 0; row < 4; ++row )
     {
         for ( col = 0; col < 4; ++col )
@@ -2419,7 +2487,7 @@ RMtx4_setElement( VALUE self, VALUE r, VALUE c, VALUE f )
     int row, col;
     rmReal flt;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     row = FIX2INT(r);
     col = FIX2INT(c);
     flt = NUM2DBL(f);
@@ -2441,7 +2509,7 @@ RMtx4_getElement( VALUE self, VALUE r, VALUE c )
     int row, col;
     rmReal flt;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     row = FIX2INT(r);
     col = FIX2INT(c);
     flt = RMtx4GetElement( m, row, col );
@@ -2456,7 +2524,7 @@ RMtx4_get_e00( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 0, 0 ) );
 }
@@ -2469,7 +2537,7 @@ RMtx4_get_e01( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 0, 1 ) );
 }
@@ -2482,7 +2550,7 @@ RMtx4_get_e02( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 0, 2 ) );
 }
@@ -2495,7 +2563,7 @@ RMtx4_get_e03( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 0, 3 ) );
 }
@@ -2508,7 +2576,7 @@ RMtx4_get_e10( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 1, 0 ) );
 }
@@ -2521,7 +2589,7 @@ RMtx4_get_e11( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 1, 1 ) );
 }
@@ -2534,7 +2602,7 @@ RMtx4_get_e12( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 1, 2 ) );
 }
@@ -2547,7 +2615,7 @@ RMtx4_get_e13( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 1, 3 ) );
 }
@@ -2560,7 +2628,7 @@ RMtx4_get_e20( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 2, 0 ) );
 }
@@ -2573,7 +2641,7 @@ RMtx4_get_e21( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 2, 1 ) );
 }
@@ -2586,7 +2654,7 @@ RMtx4_get_e22( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 2, 2 ) );
 }
@@ -2599,7 +2667,7 @@ RMtx4_get_e23( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 2, 3 ) );
 }
@@ -2612,7 +2680,7 @@ RMtx4_get_e30( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 3, 0 ) );
 }
@@ -2625,7 +2693,7 @@ RMtx4_get_e31( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 3, 1 ) );
 }
@@ -2638,7 +2706,7 @@ RMtx4_get_e32( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 3, 2 ) );
 }
@@ -2651,7 +2719,7 @@ RMtx4_get_e33( VALUE self )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     return DBL2NUM( RMtx4GetElement( m, 3, 3 ) );
 }
@@ -2663,7 +2731,7 @@ RMtx4_set_e00( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 0, 0, NUM2DBL(f) );
 
@@ -2678,7 +2746,7 @@ RMtx4_set_e01( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 0, 1, NUM2DBL(f) );
 
@@ -2693,7 +2761,7 @@ RMtx4_set_e02( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 0, 2, NUM2DBL(f) );
 
@@ -2708,7 +2776,7 @@ RMtx4_set_e03( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 0, 3, NUM2DBL(f) );
 
@@ -2723,7 +2791,7 @@ RMtx4_set_e10( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 1, 0, NUM2DBL(f) );
 
@@ -2738,7 +2806,7 @@ RMtx4_set_e11( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 1, 1, NUM2DBL(f) );
 
@@ -2753,7 +2821,7 @@ RMtx4_set_e12( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 1, 2, NUM2DBL(f) );
 
@@ -2768,7 +2836,7 @@ RMtx4_set_e13( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 1, 3, NUM2DBL(f) );
 
@@ -2783,7 +2851,7 @@ RMtx4_set_e20( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 2, 0, NUM2DBL(f) );
 
@@ -2798,7 +2866,7 @@ RMtx4_set_e21( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 2, 1, NUM2DBL(f) );
 
@@ -2813,7 +2881,7 @@ RMtx4_set_e22( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 2, 2, NUM2DBL(f) );
 
@@ -2828,7 +2896,7 @@ RMtx4_set_e23( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 2, 3, NUM2DBL(f) );
 
@@ -2843,7 +2911,7 @@ RMtx4_set_e30( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 3, 0, NUM2DBL(f) );
 
@@ -2858,7 +2926,7 @@ RMtx4_set_e31( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 3, 1, NUM2DBL(f) );
 
@@ -2873,7 +2941,7 @@ RMtx4_set_e32( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 3, 2, NUM2DBL(f) );
 
@@ -2888,7 +2956,7 @@ RMtx4_set_e33( VALUE self, VALUE f )
 {
     RMtx4* m;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
 
     RMtx4SetElement( m, 3, 3, NUM2DBL(f) );
 
@@ -2908,7 +2976,7 @@ RMtx4_getRow( VALUE self, VALUE row )
     int at;
     RVec4 out;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     at = FIX2INT(row);
     RMtx4GetRow( &out, m, at );
 
@@ -2927,7 +2995,7 @@ RMtx4_getColumn( VALUE self, VALUE column )
     int at;
     RVec4 out;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     at = FIX2INT(column);
     RMtx4GetColumn( &out, m, at );
 
@@ -2947,8 +3015,8 @@ RMtx4_setRow( VALUE self, VALUE v, VALUE row )
     RVec4* in;
     int at;
 
-    Data_Get_Struct( self, RMtx4, m );
-    Data_Get_Struct( v, RVec4, in );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    TypedData_Get_Struct( v, RVec4, &RVec4_type, in );
     at = FIX2INT(row);
     RMtx4SetRow( m, in, at );
 
@@ -2968,8 +3036,8 @@ RMtx4_setColumn( VALUE self, VALUE v, VALUE column )
     RVec4* in;
     int at;
 
-    Data_Get_Struct( self, RMtx4, m );
-    Data_Get_Struct( v, RVec4, in );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    TypedData_Get_Struct( v, RVec4, &RVec4_type, in );
     at = FIX2INT(column);
     RMtx4SetColumn( m, in, at );
 
@@ -2988,7 +3056,7 @@ RMtx4_getUpper3x3( VALUE self )
     RMtx4* mtx4x4 = NULL;
     RMtx3 out;
 
-    Data_Get_Struct( self, RMtx4, mtx4x4 );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, mtx4x4 );
     RMtx4GetUpper3x3( &out, mtx4x4 );
 
     return RMtx3_from_source( &out );
@@ -3006,8 +3074,8 @@ RMtx4_setUpper3x3( VALUE self, VALUE in )
     RMtx3* mtx3x3 = NULL;
     RMtx4* mtx4x4 = NULL;
 
-    Data_Get_Struct( in, RMtx3, mtx3x3 );
-    Data_Get_Struct( self, RMtx4, mtx4x4 );
+    TypedData_Get_Struct( in, RMtx3, &RMtx3_type, mtx3x3 );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, mtx4x4 );
     RMtx4SetUpper3x3( mtx4x4, mtx3x3 );
 
     return self;
@@ -3025,7 +3093,7 @@ RMtx4_setZero( VALUE self )
 {
     RMtx4* m = NULL;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Zero( m );
 
     return self;
@@ -3041,7 +3109,7 @@ RMtx4_setIdentity( VALUE self )
 {
     RMtx4* m = NULL;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Identity( m );
 
     return self;
@@ -3058,7 +3126,7 @@ RMtx4_getDeterminant( VALUE self )
     RMtx4* m = NULL;
     rmReal f;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     f = RMtx4Determinant( m );
 
     return DBL2NUM( f );
@@ -3075,7 +3143,7 @@ RMtx4_transpose( VALUE self )
     RMtx4* m = NULL;
     RMtx4 out;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Transpose( &out, m );
 
     return RMtx4_from_source( &out );
@@ -3091,7 +3159,7 @@ RMtx4_transpose_intrusive( VALUE self )
 {
     RMtx4* m = NULL;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Transpose( m, m );
 
     return self;
@@ -3108,7 +3176,7 @@ RMtx4_inverse( VALUE self )
     RMtx4* m = NULL;
     RMtx4 out;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Inverse( &out, m );
 
     return RMtx4_from_source( &out );
@@ -3124,7 +3192,7 @@ RMtx4_inverse_intrusive( VALUE self )
 {
     RMtx4* m = NULL;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Inverse( m, m );
 
     return self;
@@ -3141,7 +3209,7 @@ RMtx4_translation( VALUE self, VALUE x, VALUE y, VALUE z )
     RMtx4* m = NULL;
     rmReal tx, ty, tz;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     tx = NUM2DBL(x);
     ty = NUM2DBL(y);
     tz = NUM2DBL(z);
@@ -3161,7 +3229,7 @@ RMtx4_rotationX( VALUE self, VALUE radian )
     RMtx4* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx4RotationX( m, angle_radian );
 
@@ -3179,7 +3247,7 @@ RMtx4_rotationY( VALUE self, VALUE radian )
     RMtx4* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx4RotationY( m, angle_radian );
 
@@ -3197,7 +3265,7 @@ RMtx4_rotationZ( VALUE self, VALUE radian )
     RMtx4* m = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     angle_radian = NUM2DBL(radian);
     RMtx4RotationZ( m, angle_radian );
 
@@ -3216,8 +3284,8 @@ RMtx4_rotationAxis( VALUE self, VALUE axis, VALUE radian )
     RVec3* vAxis = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RMtx4, m );
-    Data_Get_Struct( axis, RVec3, vAxis );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    TypedData_Get_Struct( axis, RVec3, &RVec3_type, vAxis );
     angle_radian = NUM2DBL(radian);
     RMtx4RotationAxis( m, vAxis, angle_radian );
 
@@ -3235,8 +3303,8 @@ RMtx4_rotationQuaternion( VALUE self, VALUE q )
     RMtx4*      m    = NULL;
     RQuat*      quat = NULL;
 
-    Data_Get_Struct( self, RMtx4, m );
-    Data_Get_Struct( q, RQuat, quat );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    TypedData_Get_Struct( q, RQuat, &RQuat_type, quat );
     RMtx4RotationQuaternion( m, quat );
 
     return self;
@@ -3253,7 +3321,7 @@ RMtx4_scaling( VALUE self, VALUE x, VALUE y, VALUE z )
     RMtx4* m = NULL;
     rmReal sx, sy, sz;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     sx = NUM2DBL(x);
     sy = NUM2DBL(y);
     sz = NUM2DBL(z);
@@ -3278,10 +3346,10 @@ RMtx4_lookAtRH( VALUE self, VALUE e, VALUE a, VALUE u )
     RVec3*  at  = NULL;
     RVec3*  up  = NULL;
 
-    Data_Get_Struct( self, RMtx4, m );
-    Data_Get_Struct( e, RVec3, eye );
-    Data_Get_Struct( a, RVec3, at );
-    Data_Get_Struct( u, RVec3, up );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    TypedData_Get_Struct( e, RVec3, &RVec3_type, eye );
+    TypedData_Get_Struct( a, RVec3, &RVec3_type, at );
+    TypedData_Get_Struct( u, RVec3, &RVec3_type, up );
     RMtx4LookAtRH( m, eye, at, up );
 
     return self;
@@ -3302,7 +3370,7 @@ RMtx4_perspectiveRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf )
     RMtx4* m = NULL;
     rmReal width, height, znear, zfar;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     width  = NUM2DBL(w);
     height = NUM2DBL(h);
     znear  = NUM2DBL(zn);
@@ -3328,7 +3396,7 @@ RMtx4_perspectiveFovRH( VALUE self, VALUE fovy, VALUE asp, VALUE zn, VALUE zf )
     RMtx4* m = NULL;
     rmReal fovy_radian, aspect, znear, zfar;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     fovy_radian = NUM2DBL(fovy);
     aspect      = NUM2DBL(asp);
     znear       = NUM2DBL(zn);
@@ -3356,7 +3424,7 @@ RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VA
     RMtx4* m = NULL;
     rmReal left, right, bottom, top, znear, zfar;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     left   = NUM2DBL(l);
     right  = NUM2DBL(r);
     bottom = NUM2DBL(b);
@@ -3383,7 +3451,7 @@ RMtx4_orthoRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf )
     RMtx4* m = NULL;
     rmReal width, height, znear, zfar;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     width  = NUM2DBL(w);
     height = NUM2DBL(h);
     znear  = NUM2DBL(zn);
@@ -3411,7 +3479,7 @@ RMtx4_orthoOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn
     RMtx4* m = NULL;
     rmReal left, right, bottom, top, znear, zfar;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     left   = NUM2DBL(l);
     right  = NUM2DBL(r);
     bottom = NUM2DBL(b);
@@ -3445,7 +3513,7 @@ RMtx4_op_unary_minus( VALUE self )
     RMtx4* m = NULL;
     RMtx4 out;
 
-    Data_Get_Struct( self, RMtx4, m );
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     RMtx4Scale( &out, m, (rmReal)(-1) );
 
     return RMtx4_from_source( &out );
@@ -3474,8 +3542,8 @@ RMtx4_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx4, m1 );
-    Data_Get_Struct( other, RMtx4, m2 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
+    TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
     RMtx4Add( &result, m1, m2 );
 
     return RMtx4_from_source( &result );
@@ -3504,8 +3572,8 @@ RMtx4_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx4, m1 );
-    Data_Get_Struct( other, RMtx4, m2 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
+    TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
     RMtx4Sub( &result, m1, m2 );
 
     return RMtx4_from_source( &result );
@@ -3524,11 +3592,11 @@ RMtx4_op_binary_mult( VALUE self, VALUE other )
     rmReal f;
     RMtx4 result;
 
-    Data_Get_Struct( self, RMtx4, m1 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
 
     if ( IsRMtx4(other) )
     {
-        Data_Get_Struct( other, RMtx4, m2 );
+        TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
         RMtx4Mul( &result, m1, m2 );
     }
     else
@@ -3562,8 +3630,8 @@ RMtx4_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,    RMtx4, m1 );
-    Data_Get_Struct( other, RMtx4, m2 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
+    TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
 
     if ( !RMtx4Equal(m1,m2) )
         return Qfalse;
@@ -3593,8 +3661,8 @@ RMtx4_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx4, m1 );
-    Data_Get_Struct( other, RMtx4, m2 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
+    TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
     RMtx4Add( m1, m1, m2 );
 
     return self;
@@ -3622,8 +3690,8 @@ RMtx4_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RMtx4, m1 );
-    Data_Get_Struct( other, RMtx4, m2 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
+    TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
     RMtx4Sub( m1, m1, m2 );
 
     return self;
@@ -3641,11 +3709,11 @@ RMtx4_op_assign_mult( VALUE self, VALUE other )
     RMtx4* m2 = NULL;
     rmReal f;
 
-    Data_Get_Struct( self, RMtx4, m1 );
+    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
 
     if ( IsRMtx4(other) )
     {
-        Data_Get_Struct( other, RMtx4, m2 );
+        TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
         RMtx4Mul( m1, m1, m2 );
     }
     else
@@ -3675,25 +3743,27 @@ RQuat_free( void* ptr )
 	xfree( ptr );
 }
 
+static size_t
+RQuat_memsize( const void* ptr )
+{
+    const struct RQuat* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
 static VALUE
 RQuat_from_source( RQuat* src )
 {
-    RQuat* v = ALLOC( RQuat );
-
+    RQuat* v = ZALLOC( struct RQuat );
     RQuatCopy( v, src );
-
-    return Data_Wrap_Struct( rb_cRQuat, NULL, RQuat_free, v );
+    return TypedData_Wrap_Struct( rb_cRQuat, &RQuat_type, v );
 }
 
 
 static VALUE
 RQuat_allocate( VALUE klass )
 {
-    RQuat* v = ALLOC( RQuat );
-
-    memset( v, 0, sizeof(RQuat) );
-
-    return Data_Wrap_Struct( klass, NULL, RQuat_free, v );
+    RQuat* v = ZALLOC( RQuat );
+    return TypedData_Wrap_Struct( klass, &RQuat_type, v );
 }
 
 
@@ -3710,7 +3780,7 @@ static VALUE
 RQuat_initialize( int argc, VALUE* argv, VALUE self )
 {
     RQuat* v = NULL;
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
 
     switch( argc )
     {
@@ -3743,7 +3813,7 @@ RQuat_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RQuat* other;
-                Data_Get_Struct( arg , RQuat, other );
+                TypedData_Get_Struct( arg , RQuat, &RQuat_type, other );
                 RQuatSetElements( v, other->x, other->y, other->z, other->w );
                 return self;
             }
@@ -3819,7 +3889,7 @@ RQuat_to_s( VALUE self )
     char dest[128], work[4][32];
     int i;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
 
     for ( i = 0; i < 4; ++i )
     {
@@ -3856,7 +3926,7 @@ RQuat_to_a( VALUE self )
 {
     RQuat* v = NULL;
     VALUE dbl[4];
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
 
     dbl[0] = DBL2NUM(RQuatGetElement(v,0));
     dbl[1] = DBL2NUM(RQuatGetElement(v,1));
@@ -3875,7 +3945,7 @@ static VALUE
 RQuat_coerce( VALUE self, VALUE other )
 {
     RQuat* v = NULL;
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
 
     switch( TYPE(other) )
     {
@@ -3914,7 +3984,7 @@ RQuat_setElements( VALUE self, VALUE x, VALUE y, VALUE z, VALUE w )
     RQuat* v = NULL;
     rmReal flt0, flt1, flt2, flt3;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = NUM2DBL(x);
     flt1 = NUM2DBL(y);
     flt2 = NUM2DBL(z);
@@ -3937,7 +4007,7 @@ RQuat_setElement( VALUE self, VALUE i, VALUE f )
     int at;
     rmReal flt;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     at = NUM2INT(i);
     flt = NUM2DBL(f);
 
@@ -3957,7 +4027,7 @@ RQuat_setX( VALUE self, VALUE x )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = NUM2DBL(x);
 
     RQuatSetX( v, flt0 );
@@ -3976,7 +4046,7 @@ RQuat_setY( VALUE self, VALUE y )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = NUM2DBL(y);
 
     RQuatSetY( v, flt0 );
@@ -3995,7 +4065,7 @@ RQuat_setZ( VALUE self, VALUE z )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = NUM2DBL(z);
 
     RQuatSetZ( v, flt0 );
@@ -4014,7 +4084,7 @@ RQuat_setW( VALUE self, VALUE w )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = NUM2DBL(w);
 
     RQuatSetW( v, flt0 );
@@ -4033,8 +4103,8 @@ RQuat_setXYZ( VALUE self, VALUE xyz )
     RQuat* v = NULL;
     RVec3* in = NULL;
 
-    Data_Get_Struct( self, RQuat, v );
-    Data_Get_Struct( xyz, RVec3, in );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
+    TypedData_Get_Struct( xyz, RVec3, &RVec3_type, in );
 
     RQuatSetXYZ( v, in );
 
@@ -4053,7 +4123,7 @@ RQuat_getElement( VALUE self, VALUE i )
     int at;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     at = FIX2INT(i);
     flt0 = RQuatGetElement( v, at );
 
@@ -4071,7 +4141,7 @@ RQuat_getX( VALUE self )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = RQuatGetX( v );
 
     return DBL2NUM( flt0 );
@@ -4088,7 +4158,7 @@ RQuat_getY( VALUE self )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = RQuatGetY( v );
 
     return DBL2NUM( flt0 );
@@ -4105,7 +4175,7 @@ RQuat_getZ( VALUE self )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = RQuatGetZ( v );
 
     return DBL2NUM( flt0 );
@@ -4122,7 +4192,7 @@ RQuat_getW( VALUE self )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = RQuatGetW( v );
 
     return DBL2NUM( flt0 );
@@ -4139,7 +4209,7 @@ RQuat_getXYZ( VALUE self )
     RQuat* v = NULL;
     RVec3 out;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
 
     RQuatGetXYZ( &out, v );
 
@@ -4157,7 +4227,7 @@ RQuat_getLength( VALUE self )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = RQuatLength( v );
 
     return DBL2NUM( flt0 );
@@ -4174,7 +4244,7 @@ RQuat_getLengthSq( VALUE self )
     RQuat* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     flt0 = RQuatLengthSq( v );
 
     return DBL2NUM( flt0 );
@@ -4192,8 +4262,8 @@ RQuat_dot( VALUE self, VALUE q1, VALUE q2 )
     RQuat* quat2 = NULL;
     rmReal result;
 
-    Data_Get_Struct( q1, RQuat, quat1 );
-    Data_Get_Struct( q2, RQuat, quat2 );
+    TypedData_Get_Struct( q1, RQuat, &RQuat_type, quat1 );
+    TypedData_Get_Struct( q2, RQuat, &RQuat_type, quat2 );
     result = RQuatDot( quat1, quat2 );
 
     return DBL2NUM( result );
@@ -4213,8 +4283,8 @@ RQuat_slerp( VALUE self, VALUE q1, VALUE q2, VALUE t )
     rmReal time;
     RQuat result;
 
-    Data_Get_Struct( q1, RQuat, quat1 );
-    Data_Get_Struct( q2, RQuat, quat2 );
+    TypedData_Get_Struct( q1, RQuat, &RQuat_type, quat1 );
+    TypedData_Get_Struct( q2, RQuat, &RQuat_type, quat2 );
     time = NUM2DBL( t );
     RQuatSlerp( &result, quat1, quat2, time );
 
@@ -4231,7 +4301,7 @@ RQuat_setIdentity( VALUE self )
 {
     RQuat* q = NULL;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
     RQuatIdentity( q );
 
     return self;
@@ -4248,7 +4318,7 @@ RQuat_conjugate( VALUE self )
     RQuat* q = NULL;
     RQuat out;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
     RQuatConjugate( &out, q );
 
     return RQuat_from_source( &out );
@@ -4264,7 +4334,7 @@ RQuat_conjugate_intrusive( VALUE self )
 {
     RQuat* q = NULL;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
     RQuatConjugate( q, q );
 
     return self;
@@ -4281,7 +4351,7 @@ RQuat_inverse( VALUE self )
     RQuat* q = NULL;
     RQuat out;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
     RQuatInverse( &out, q );
 
     return RQuat_from_source( &out );
@@ -4297,7 +4367,7 @@ RQuat_inverse_intrusive( VALUE self )
 {
     RQuat* q = NULL;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
     RQuatInverse( q, q );
 
     return self;
@@ -4314,7 +4384,7 @@ RQuat_normalize( VALUE self )
     RQuat* v = NULL;
     RQuat out;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     RQuatNormalize( &out, v );
 
     return RQuat_from_source( &out );
@@ -4330,7 +4400,7 @@ RQuat_normalize_intrusive( VALUE self )
 {
     RQuat* v = NULL;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     RQuatNormalize( v, v );
 
     return self;
@@ -4358,7 +4428,7 @@ RQuat_op_unary_minus( VALUE self )
     RQuat* v = NULL;
     RQuat out;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     RQuatScale( &out, v, (rmReal)(-1) );
 
     return RQuat_from_source( &out );
@@ -4387,8 +4457,8 @@ RQuat_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RQuat, v1 );
-    Data_Get_Struct( other,  RQuat, v2 );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v1 );
+    TypedData_Get_Struct( other,  RQuat, &RQuat_type, v2 );
     RQuatAdd( &result, v1, v2 );
 
     return RQuat_from_source( &result );
@@ -4417,8 +4487,8 @@ RQuat_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RQuat, v1 );
-    Data_Get_Struct( other,  RQuat, v2 );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v1 );
+    TypedData_Get_Struct( other,  RQuat, &RQuat_type, v2 );
     RQuatSub( &result, v1, v2 );
 
     return RQuat_from_source( &result );
@@ -4436,11 +4506,11 @@ RQuat_op_binary_mult( VALUE self, VALUE other )
     RQuat result;
     rmReal f;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     if ( IsRQuat(other) )
     {
         RQuat* q = NULL;
-        Data_Get_Struct( other, RQuat, q );
+        TypedData_Get_Struct( other, RQuat, &RQuat_type, q );
         RQuatMul( &result, v, q );
 
         return RQuat_from_source( &result );
@@ -4493,8 +4563,8 @@ RQuat_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,    RQuat, v1 );
-    Data_Get_Struct( other, RQuat, v2 );
+    TypedData_Get_Struct( self,  RQuat, &RQuat_type, v1 );
+    TypedData_Get_Struct( other, RQuat, &RQuat_type, v2 );
 
     if ( !RQuatEqual(v1,v2) )
         return Qfalse;
@@ -4524,8 +4594,8 @@ RQuat_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RQuat, v1 );
-    Data_Get_Struct( other, RQuat, v2 );
+    TypedData_Get_Struct( self,  RQuat, &RQuat_type, v1 );
+    TypedData_Get_Struct( other, RQuat, &RQuat_type, v2 );
 
     RQuatAdd( v1, v1, v2 );
 
@@ -4554,8 +4624,8 @@ RQuat_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RQuat, v1 );
-    Data_Get_Struct( other, RQuat, v2 );
+    TypedData_Get_Struct( self,  RQuat, &RQuat_type, v1 );
+    TypedData_Get_Struct( other, RQuat, &RQuat_type, v2 );
 
     RQuatSub( v1, v1, v2 );
 
@@ -4573,11 +4643,11 @@ RQuat_op_assign_mult( VALUE self, VALUE other )
     RQuat* v = NULL;
     rmReal  f;
 
-    Data_Get_Struct( self, RQuat, v );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
     if ( IsRQuat(other) )
     {
         RQuat* q = NULL;
-        Data_Get_Struct( other, RQuat, q );
+        TypedData_Get_Struct( other, RQuat, &RQuat_type, q );
         RQuatMul( v, v, q );
 
         return self;
@@ -4612,8 +4682,8 @@ RQuat_rotationMatrix( VALUE self, VALUE mtx )
     RQuat* q = NULL;
     RMtx4* m = NULL;
 
-    Data_Get_Struct( self, RQuat, q );
-    Data_Get_Struct( mtx,  RMtx4, m );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
+    TypedData_Get_Struct( mtx,  RMtx4, &RMtx4_type, m );
 
     RQuatRotationMatrix( q, m );
 
@@ -4632,8 +4702,8 @@ RQuat_rotationAxis( VALUE self, VALUE axis, VALUE radian )
     RVec3* vAxis = NULL;
     rmReal angle_radian;
 
-    Data_Get_Struct( self, RQuat, q );
-    Data_Get_Struct( axis, RVec3, vAxis );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
+    TypedData_Get_Struct( axis, RVec3, &RVec3_type, vAxis );
     angle_radian = NUM2DBL( radian );
 
     RQuatRotationAxis( q, vAxis, angle_radian );
@@ -4653,7 +4723,7 @@ RQuat_toAxisAngle( VALUE self )
     RVec3 axis;
     rmReal radian;
 
-    Data_Get_Struct( self, RQuat, q );
+    TypedData_Get_Struct( self, RQuat, &RQuat_type, q );
 
     RQuatToAxisAngle( q, &axis, &radian );
 
@@ -4678,25 +4748,27 @@ RVec2_free( void* ptr )
 	xfree( ptr );
 }
 
+static size_t
+RVec2_memsize( const void* ptr )
+{
+    const struct RVec2* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
 static VALUE
 RVec2_from_source( RVec2* src )
 {
-    RVec2* v = ALLOC( RVec2 );
-
+    RVec2* v = ZALLOC( struct RVec2 );
     RVec2Copy( v, src );
-
-    return Data_Wrap_Struct( rb_cRVec2, NULL, RVec2_free, v );
+    return TypedData_Wrap_Struct( rb_cRVec2, &RVec2_type, v );
 }
 
 
 static VALUE
 RVec2_allocate( VALUE klass )
 {
-    RVec2* v = ALLOC( RVec2 );
-
-    memset( v, 0, sizeof(RVec2) );
-
-    return Data_Wrap_Struct( klass, NULL, RVec2_free, v );
+    RVec2* v = ZALLOC( RVec2 );
+    return TypedData_Wrap_Struct( klass, &RVec2_type, v );
 }
 
 
@@ -4713,7 +4785,7 @@ static VALUE
 RVec2_initialize( int argc, VALUE* argv, VALUE self )
 {
     RVec2* v = NULL;
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
 
     switch( argc )
     {
@@ -4746,7 +4818,7 @@ RVec2_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RVec2* other;
-                Data_Get_Struct( arg , RVec2, other );
+                TypedData_Get_Struct( arg , RVec2, &RVec2_type, other );
                 RVec2SetElements( v, other->x, other->y );
                 return self;
             }
@@ -4822,7 +4894,7 @@ RVec2_to_s( VALUE self )
     char dest[128], work[2][32];
     int i;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
 
     for ( i = 0; i < 2; ++i )
     {
@@ -4859,7 +4931,7 @@ RVec2_to_a( VALUE self )
 {
     RVec2* v = NULL;
     VALUE dbl[2];
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
 
     dbl[0] = DBL2NUM(RVec2GetElement(v,0));
     dbl[1] = DBL2NUM(RVec2GetElement(v,1));
@@ -4876,7 +4948,7 @@ static VALUE
 RVec2_coerce( VALUE self, VALUE other )
 {
     RVec2* v = NULL;
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
 
     switch( TYPE(other) )
     {
@@ -4915,7 +4987,7 @@ RVec2_setElements( VALUE self, VALUE x, VALUE y )
     RVec2* v = NULL;
     rmReal flt0, flt1;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = NUM2DBL(x);
     flt1 = NUM2DBL(y);
 
@@ -4936,7 +5008,7 @@ RVec2_setElement( VALUE self, VALUE i, VALUE f )
     int at;
     rmReal flt;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     at = NUM2INT(i);
     flt = NUM2DBL(f);
 
@@ -4956,7 +5028,7 @@ RVec2_setX( VALUE self, VALUE x )
     RVec2* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = NUM2DBL(x);
 
     RVec2SetX( v, flt0 );
@@ -4975,7 +5047,7 @@ RVec2_setY( VALUE self, VALUE y )
     RVec2* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = NUM2DBL(y);
 
     RVec2SetY( v, flt0 );
@@ -4995,7 +5067,7 @@ RVec2_getElement( VALUE self, VALUE i )
     int at;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     at = FIX2INT(i);
     flt0 = RVec2GetElement( v, at );
 
@@ -5013,7 +5085,7 @@ RVec2_getX( VALUE self )
     RVec2* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = RVec2GetX( v );
 
     return DBL2NUM( flt0 );
@@ -5030,7 +5102,7 @@ RVec2_getY( VALUE self )
     RVec2* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = RVec2GetY( v );
 
     return DBL2NUM( flt0 );
@@ -5047,7 +5119,7 @@ RVec2_getLength( VALUE self )
     RVec2* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = RVec2Length( v );
 
     return DBL2NUM( flt0 );
@@ -5064,7 +5136,7 @@ RVec2_getLengthSq( VALUE self )
     RVec2* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     flt0 = RVec2LengthSq( v );
 
     return DBL2NUM( flt0 );
@@ -5082,8 +5154,8 @@ RVec2_dot( VALUE self, VALUE v1, VALUE v2 )
     RVec2* vec2 = NULL;
     rmReal result;
 
-    Data_Get_Struct( v1, RVec2, vec1 );
-    Data_Get_Struct( v2, RVec2, vec2 );
+    TypedData_Get_Struct( v1, RVec2, &RVec2_type, vec1 );
+    TypedData_Get_Struct( v2, RVec2, &RVec2_type, vec2 );
     result = RVec2Dot( vec1, vec2 );
 
     return DBL2NUM( result );
@@ -5101,8 +5173,8 @@ RVec2_cross( VALUE self, VALUE v1, VALUE v2 )
     RVec2* vec2 = NULL;
     rmReal result;
 
-    Data_Get_Struct( v1, RVec2, vec1 );
-    Data_Get_Struct( v2, RVec2, vec2 );
+    TypedData_Get_Struct( v1, RVec2, &RVec2_type, vec1 );
+    TypedData_Get_Struct( v2, RVec2, &RVec2_type, vec2 );
     result = RVec2Cross( vec1, vec2 );
 
     return DBL2NUM( result );
@@ -5121,7 +5193,7 @@ RVec2_transform( VALUE self, VALUE mtx )
     RMtx2* m;
     RVec2 out;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     TypedData_Get_Struct( mtx, RMtx2, &RMtx2_type, m );
     RVec2Transform( &out, m, v );
 
@@ -5139,7 +5211,7 @@ RVec2_normalize( VALUE self )
     RVec2* v = NULL;
     RVec2 out;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     RVec2Normalize( &out, v );
 
     return RVec2_from_source( &out );
@@ -5155,7 +5227,7 @@ RVec2_normalize_intrusive( VALUE self )
 {
     RVec2* v = NULL;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     RVec2Normalize( v, v );
 
     return self;
@@ -5183,7 +5255,7 @@ RVec2_op_unary_minus( VALUE self )
     RVec2* v   = NULL;
     RVec2 out;
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     RVec2Scale( &out, v, (rmReal)(-1) );
 
     return RVec2_from_source( &out );
@@ -5212,8 +5284,8 @@ RVec2_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec2, v1 );
-    Data_Get_Struct( other,  RVec2, v2 );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v1 );
+    TypedData_Get_Struct( other,  RVec2, &RVec2_type, v2 );
     RVec2Add( &result, v1, v2 );
 
     return RVec2_from_source( &result );
@@ -5242,8 +5314,8 @@ RVec2_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec2, v1 );
-    Data_Get_Struct( other,  RVec2, v2 );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v1 );
+    TypedData_Get_Struct( other,  RVec2, &RVec2_type, v2 );
     RVec2Sub( &result, v1, v2 );
 
     return RVec2_from_source( &result );
@@ -5266,7 +5338,7 @@ RVec2_op_binary_mult( VALUE self, VALUE other )
     case T_FIXNUM:
     case T_FLOAT:
     {
-        Data_Get_Struct( self, RVec2, v );
+        TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
         f = NUM2DBL( other );
         RVec2Scale( &result, v, f );
 
@@ -5307,8 +5379,8 @@ RVec2_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec2, v1 );
-    Data_Get_Struct( other, RVec2, v2 );
+    TypedData_Get_Struct( self,  RVec2, &RVec2_type, v1 );
+    TypedData_Get_Struct( other, RVec2, &RVec2_type, v2 );
 
     if ( !RVec2Equal(v1,v2) )
         return Qfalse;
@@ -5338,8 +5410,8 @@ RVec2_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec2, v1 );
-    Data_Get_Struct( other, RVec2, v2 );
+    TypedData_Get_Struct( self,  RVec2, &RVec2_type, v1 );
+    TypedData_Get_Struct( other, RVec2, &RVec2_type, v2 );
 
     RVec2Add( v1, v1, v2 );
 
@@ -5368,8 +5440,8 @@ RVec2_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec2, v1 );
-    Data_Get_Struct( other, RVec2, v2 );
+    TypedData_Get_Struct( self,  RVec2, &RVec2_type, v1 );
+    TypedData_Get_Struct( other, RVec2, &RVec2_type, v2 );
 
     RVec2Sub( v1, v1, v2 );
 
@@ -5398,7 +5470,7 @@ RVec2_op_assign_mult( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec2, v );
+    TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
     f = NUM2DBL( other );
     RVec2Scale( v, v, f );
 
@@ -5423,25 +5495,27 @@ RVec3_free( void* ptr )
 	xfree( ptr );
 }
 
+static size_t
+RVec3_memsize( const void* ptr )
+{
+    const struct RVec3* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
 static VALUE
 RVec3_from_source( RVec3* src )
 {
-    RVec3* v = ALLOC( RVec3 );
-
+    RVec3* v = ZALLOC( struct RVec3 );
     RVec3Copy( v, src );
-
-    return Data_Wrap_Struct( rb_cRVec3, NULL, RVec3_free, v );
+    return TypedData_Wrap_Struct( rb_cRVec3, &RVec3_type, v );
 }
 
 
 static VALUE
 RVec3_allocate( VALUE klass )
 {
-    RVec3* v = ALLOC( RVec3 );
-
-    memset( v, 0, sizeof(RVec3) );
-
-    return Data_Wrap_Struct( klass, NULL, RVec3_free, v );
+    RVec3* v = ZALLOC( RVec3 );
+    return TypedData_Wrap_Struct( klass, &RVec3_type, v );
 }
 
 
@@ -5458,7 +5532,7 @@ static VALUE
 RVec3_initialize( int argc, VALUE* argv, VALUE self )
 {
     RVec3* v = NULL;
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
 
     switch( argc )
     {
@@ -5491,7 +5565,7 @@ RVec3_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RVec3* other;
-                Data_Get_Struct( arg , RVec3, other );
+                TypedData_Get_Struct( arg , RVec3, &RVec3_type, other );
                 RVec3SetElements( v, other->x, other->y, other->z );
                 return self;
             }
@@ -5567,7 +5641,7 @@ RVec3_to_s( VALUE self )
     char dest[128], work[3][32];
     int i;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
 
     for ( i = 0; i < 3; ++i )
     {
@@ -5604,7 +5678,7 @@ RVec3_to_a( VALUE self )
 {
     RVec3* v = NULL;
     VALUE dbl[3];
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
 
     dbl[0] = DBL2NUM(RVec3GetElement(v,0));
     dbl[1] = DBL2NUM(RVec3GetElement(v,1));
@@ -5622,7 +5696,7 @@ static VALUE
 RVec3_coerce( VALUE self, VALUE other )
 {
     RVec3* v = NULL;
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
 
     switch( TYPE(other) )
     {
@@ -5661,7 +5735,7 @@ RVec3_setElements( VALUE self, VALUE x, VALUE y, VALUE z )
     RVec3* v = NULL;
     rmReal flt0, flt1, flt2;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = NUM2DBL(x);
     flt1 = NUM2DBL(y);
     flt2 = NUM2DBL(z);
@@ -5683,7 +5757,7 @@ RVec3_setElement( VALUE self, VALUE i, VALUE f )
     int at;
     rmReal flt;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     at = NUM2INT(i);
     flt = NUM2DBL(f);
 
@@ -5703,7 +5777,7 @@ RVec3_setX( VALUE self, VALUE x )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = NUM2DBL(x);
 
     RVec3SetX( v, flt0 );
@@ -5722,7 +5796,7 @@ RVec3_setY( VALUE self, VALUE y )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = NUM2DBL(y);
 
     RVec3SetY( v, flt0 );
@@ -5741,7 +5815,7 @@ RVec3_setZ( VALUE self, VALUE z )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = NUM2DBL(z);
 
     RVec3SetZ( v, flt0 );
@@ -5761,7 +5835,7 @@ RVec3_getElement( VALUE self, VALUE i )
     int at;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     at = FIX2INT(i);
     flt0 = RVec3GetElement( v, at );
 
@@ -5779,7 +5853,7 @@ RVec3_getX( VALUE self )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = RVec3GetX( v );
 
     return DBL2NUM( flt0 );
@@ -5796,7 +5870,7 @@ RVec3_getY( VALUE self )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = RVec3GetY( v );
 
     return DBL2NUM( flt0 );
@@ -5813,7 +5887,7 @@ RVec3_getZ( VALUE self )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = RVec3GetZ( v );
 
     return DBL2NUM( flt0 );
@@ -5830,7 +5904,7 @@ RVec3_getLength( VALUE self )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = RVec3Length( v );
 
     return DBL2NUM( flt0 );
@@ -5847,7 +5921,7 @@ RVec3_getLengthSq( VALUE self )
     RVec3* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     flt0 = RVec3LengthSq( v );
 
     return DBL2NUM( flt0 );
@@ -5865,8 +5939,8 @@ RVec3_dot( VALUE self, VALUE v1, VALUE v2 )
     RVec3* vec2 = NULL;
     rmReal result;
 
-    Data_Get_Struct( v1, RVec3, vec1 );
-    Data_Get_Struct( v2, RVec3, vec2 );
+    TypedData_Get_Struct( v1, RVec3, &RVec3_type, vec1 );
+    TypedData_Get_Struct( v2, RVec3, &RVec3_type, vec2 );
     result = RVec3Dot( vec1, vec2 );
 
     return DBL2NUM( result );
@@ -5884,8 +5958,8 @@ RVec3_cross( VALUE self, VALUE v1, VALUE v2 )
     RVec3* vec2 = NULL;
     RVec3 out;
 
-    Data_Get_Struct( v1, RVec3, vec1 );
-    Data_Get_Struct( v2, RVec3, vec2 );
+    TypedData_Get_Struct( v1, RVec3, &RVec3_type, vec1 );
+    TypedData_Get_Struct( v2, RVec3, &RVec3_type, vec2 );
     RVec3Cross( &out, vec1, vec2 );
 
     return RVec3_from_source( &out );
@@ -5904,8 +5978,8 @@ RVec3_transform( VALUE self, VALUE mtx )
     RMtx4* m;
     RVec4 out;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec3Transform( &out, m, v );
 
     return RVec4_from_source( &out );
@@ -5925,8 +5999,8 @@ RVec3_transformCoord( VALUE self, VALUE mtx )
     RMtx4* m;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec3TransformCoord( &out, m, v );
 
     return RVec3_from_source( &out );
@@ -5945,8 +6019,8 @@ RVec3_transformCoord_intrusive( VALUE self, VALUE mtx )
     RVec3* v;
     RMtx4* m;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec3TransformCoord( v, m, v );
 
     return self;
@@ -5968,8 +6042,8 @@ RVec3_transformNormal( VALUE self, VALUE mtx )
     RMtx4* m;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec3TransformNormal( &out, m, v );
 
     return RVec3_from_source( &out );
@@ -5990,8 +6064,8 @@ RVec3_transformNormal_intrusive( VALUE self, VALUE mtx )
     RVec3* v;
     RMtx4* m;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec3TransformNormal( v, m, v );
 
     return self;
@@ -6015,8 +6089,8 @@ RVec3_transformRS( VALUE self, VALUE mtx )
     RMtx3* m;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx3, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx3, &RMtx3_type, m );
     RVec3TransformRS( &out, m, v );
 
     return RVec3_from_source( &out );
@@ -6039,8 +6113,8 @@ RVec3_transformRS_intrusive( VALUE self, VALUE mtx )
     RVec3* v;
     RMtx3* m;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx3, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx3, &RMtx3_type, m );
     RVec3TransformRS( v, m, v );
 
     return self;
@@ -6064,8 +6138,8 @@ RVec3_transformRSTransposed( VALUE self, VALUE mtx )
     RMtx3* m;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx3, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx3, &RMtx3_type, m );
     RVec3TransformRSTransposed( &out, m, v );
 
     return RVec3_from_source( &out );
@@ -6088,8 +6162,8 @@ RVec3_transformRSTransposed_intrusive( VALUE self, VALUE mtx )
     RVec3* v;
     RMtx3* m;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( mtx, RMtx3, m );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( mtx, RMtx3, &RMtx3_type, m );
     RVec3TransformRSTransposed( v, m, v );
 
     return self;
@@ -6105,8 +6179,8 @@ RVec3_transformByQuaternion( VALUE self, VALUE quat )
     RQuat* q;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( quat, RQuat, q );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( quat, RQuat, &RQuat_type, q );
     RVec3TransformByQuaternion( &out, q, v );
 
     return RVec3_from_source( &out );
@@ -6121,8 +6195,8 @@ RVec3_transformByQuaternion_intrusive( VALUE self, VALUE quat )
     RVec3* v;
     RQuat* q;
 
-    Data_Get_Struct( self, RVec3, v );
-    Data_Get_Struct( quat, RQuat, q );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
+    TypedData_Get_Struct( quat, RQuat, &RQuat_type, q );
     RVec3TransformByQuaternion( v, q, v );
 
     return self;
@@ -6139,7 +6213,7 @@ RVec3_normalize( VALUE self )
     RVec3* v = NULL;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     RVec3Normalize( &out, v );
 
     return RVec3_from_source( &out );
@@ -6155,7 +6229,7 @@ RVec3_normalize_intrusive( VALUE self )
 {
     RVec3* v = NULL;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     RVec3Normalize( v, v );
 
     return self;
@@ -6183,7 +6257,7 @@ RVec3_op_unary_minus( VALUE self )
     RVec3* v   = NULL;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     RVec3Scale( &out, v, (rmReal)(-1) );
 
     return RVec3_from_source( &out );
@@ -6212,8 +6286,8 @@ RVec3_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec3, v1 );
-    Data_Get_Struct( other,  RVec3, v2 );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v1 );
+    TypedData_Get_Struct( other,  RVec3, &RVec3_type, v2 );
     RVec3Add( &result, v1, v2 );
 
     return RVec3_from_source( &result );
@@ -6242,8 +6316,8 @@ RVec3_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec3, v1 );
-    Data_Get_Struct( other,  RVec3, v2 );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v1 );
+    TypedData_Get_Struct( other,  RVec3, &RVec3_type, v2 );
     RVec3Sub( &result, v1, v2 );
 
     return RVec3_from_source( &result );
@@ -6266,7 +6340,7 @@ RVec3_op_binary_mult( VALUE self, VALUE other )
     case T_FIXNUM:
     case T_FLOAT:
     {
-        Data_Get_Struct( self, RVec3, v );
+        TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
         f = NUM2DBL( other );
         RVec3Scale( &result, v, f );
 
@@ -6307,8 +6381,8 @@ RVec3_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec3, v1 );
-    Data_Get_Struct( other, RVec3, v2 );
+    TypedData_Get_Struct( self,  RVec3, &RVec3_type, v1 );
+    TypedData_Get_Struct( other, RVec3, &RVec3_type, v2 );
 
     if ( !RVec3Equal(v1,v2) )
         return Qfalse;
@@ -6338,8 +6412,8 @@ RVec3_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec3, v1 );
-    Data_Get_Struct( other, RVec3, v2 );
+    TypedData_Get_Struct( self,  RVec3, &RVec3_type, v1 );
+    TypedData_Get_Struct( other, RVec3, &RVec3_type, v2 );
 
     RVec3Add( v1, v1, v2 );
 
@@ -6368,8 +6442,8 @@ RVec3_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec3, v1 );
-    Data_Get_Struct( other, RVec3, v2 );
+    TypedData_Get_Struct( self,  RVec3, &RVec3_type, v1 );
+    TypedData_Get_Struct( other, RVec3, &RVec3_type, v2 );
 
     RVec3Sub( v1, v1, v2 );
 
@@ -6398,7 +6472,7 @@ RVec3_op_assign_mult( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec3, v );
+    TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
     f = NUM2DBL( other );
     RVec3Scale( v, v, f );
 
@@ -6423,25 +6497,27 @@ RVec4_free( void* ptr )
 	xfree( ptr );
 }
 
+static size_t
+RVec4_memsize( const void* ptr )
+{
+    const struct RVec4* data = ptr;
+    return data ? sizeof(*data) : 0;
+}
+
 static VALUE
 RVec4_from_source( RVec4* src )
 {
-    RVec4* v = ALLOC( RVec4 );
-
+    RVec4* v = ZALLOC( struct RVec4 );
     RVec4Copy( v, src );
-
-    return Data_Wrap_Struct( rb_cRVec4, NULL, RVec4_free, v );
+    return TypedData_Wrap_Struct( rb_cRVec4, &RVec4_type, v );
 }
 
 
 static VALUE
 RVec4_allocate( VALUE klass )
 {
-    RVec4* v = ALLOC( RVec4 );
-
-    memset( v, 0, sizeof(RVec4) );
-
-    return Data_Wrap_Struct( klass, NULL, RVec4_free, v );
+    RVec4* v = ZALLOC( RVec4 );
+    return TypedData_Wrap_Struct( klass, &RVec4_type, v );
 }
 
 
@@ -6458,7 +6534,7 @@ static VALUE
 RVec4_initialize( int argc, VALUE* argv, VALUE self )
 {
     RVec4* v = NULL;
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
 
     switch( argc )
     {
@@ -6491,7 +6567,7 @@ RVec4_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Create from RVec3 */
                 RVec3* other;
-                Data_Get_Struct( arg , RVec3, other );
+                TypedData_Get_Struct( arg , RVec3, &RVec3_type, other );
                 RVec4SetElements( v, other->x, other->y, other->z, 0.0f );
                 return self;
             }
@@ -6499,7 +6575,7 @@ RVec4_initialize( int argc, VALUE* argv, VALUE self )
             {
                 /* Copy Constructor */
                 RVec4* other;
-                Data_Get_Struct( arg , RVec4, other );
+                TypedData_Get_Struct( arg , RVec4, &RVec4_type, other );
                 RVec4SetElements( v, other->x, other->y, other->z, other->w );
                 return self;
             }
@@ -6575,7 +6651,7 @@ RVec4_to_s( VALUE self )
     char dest[128], work[4][32];
     int i;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
 
     for ( i = 0; i < 4; ++i )
     {
@@ -6612,7 +6688,7 @@ RVec4_to_a( VALUE self )
 {
     RVec4* v = NULL;
     VALUE dbl[4];
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
 
     dbl[0] = DBL2NUM(RVec4GetElement(v,0));
     dbl[1] = DBL2NUM(RVec4GetElement(v,1));
@@ -6631,7 +6707,7 @@ static VALUE
 RVec4_coerce( VALUE self, VALUE other )
 {
     RVec4* v = NULL;
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
 
     switch( TYPE(other) )
     {
@@ -6670,7 +6746,7 @@ RVec4_setElements( VALUE self, VALUE x, VALUE y, VALUE z, VALUE w )
     RVec4* v = NULL;
     rmReal flt0, flt1, flt2, flt3;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = NUM2DBL(x);
     flt1 = NUM2DBL(y);
     flt2 = NUM2DBL(z);
@@ -6693,7 +6769,7 @@ RVec4_setElement( VALUE self, VALUE i, VALUE f )
     int at;
     rmReal flt;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     at = NUM2INT(i);
     flt = NUM2DBL(f);
 
@@ -6713,7 +6789,7 @@ RVec4_setX( VALUE self, VALUE x )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = NUM2DBL(x);
 
     RVec4SetX( v, flt0 );
@@ -6732,7 +6808,7 @@ RVec4_setY( VALUE self, VALUE y )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = NUM2DBL(y);
 
     RVec4SetY( v, flt0 );
@@ -6751,7 +6827,7 @@ RVec4_setZ( VALUE self, VALUE z )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = NUM2DBL(z);
 
     RVec4SetZ( v, flt0 );
@@ -6770,7 +6846,7 @@ RVec4_setW( VALUE self, VALUE w )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = NUM2DBL(w);
 
     RVec4SetW( v, flt0 );
@@ -6789,8 +6865,8 @@ RVec4_setXYZ( VALUE self, VALUE xyz )
     RVec4* v = NULL;
     RVec3* in = NULL;
 
-    Data_Get_Struct( self, RVec4, v );
-    Data_Get_Struct( xyz, RVec3, in );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
+    TypedData_Get_Struct( xyz, RVec3, &RVec3_type, in );
 
     RVec4SetXYZ( v, in );
 
@@ -6809,7 +6885,7 @@ RVec4_getElement( VALUE self, VALUE i )
     int at;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     at = FIX2INT(i);
     flt0 = RVec4GetElement( v, at );
 
@@ -6827,7 +6903,7 @@ RVec4_getX( VALUE self )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = RVec4GetX( v );
 
     return DBL2NUM( flt0 );
@@ -6844,7 +6920,7 @@ RVec4_getY( VALUE self )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = RVec4GetY( v );
 
     return DBL2NUM( flt0 );
@@ -6861,7 +6937,7 @@ RVec4_getZ( VALUE self )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = RVec4GetZ( v );
 
     return DBL2NUM( flt0 );
@@ -6878,7 +6954,7 @@ RVec4_getW( VALUE self )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = RVec4GetW( v );
 
     return DBL2NUM( flt0 );
@@ -6895,7 +6971,7 @@ RVec4_getXYZ( VALUE self )
     RVec4* v = NULL;
     RVec3 out;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
 
     RVec4GetXYZ( &out, v );
 
@@ -6913,7 +6989,7 @@ RVec4_getLength( VALUE self )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = RVec4Length( v );
 
     return DBL2NUM( flt0 );
@@ -6930,7 +7006,7 @@ RVec4_getLengthSq( VALUE self )
     RVec4* v = NULL;
     rmReal flt0;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     flt0 = RVec4LengthSq( v );
 
     return DBL2NUM( flt0 );
@@ -6948,8 +7024,8 @@ RVec4_dot( VALUE self, VALUE v1, VALUE v2 )
     RVec4* vec2 = NULL;
     rmReal result;
 
-    Data_Get_Struct( v1, RVec4, vec1 );
-    Data_Get_Struct( v2, RVec4, vec2 );
+    TypedData_Get_Struct( v1, RVec4, &RVec4_type, vec1 );
+    TypedData_Get_Struct( v2, RVec4, &RVec4_type, vec2 );
     result = RVec4Dot( vec1, vec2 );
 
     return DBL2NUM( result );
@@ -6967,8 +7043,8 @@ RVec4_transform( VALUE self, VALUE mtx )
     RMtx4* m;
     RVec4 out;
 
-    Data_Get_Struct( self, RVec4, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec4Transform( &out, m, v );
 
     return RVec4_from_source( &out );
@@ -6985,8 +7061,8 @@ RVec4_transform_intrusive( VALUE self, VALUE mtx )
     RVec4* v;
     RMtx4* m;
 
-    Data_Get_Struct( self, RVec4, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec4Transform( v, m, v );
 
     return self;
@@ -7004,8 +7080,8 @@ RVec4_transformTransposed( VALUE self, VALUE mtx )
     RMtx4* m;
     RVec4 out;
 
-    Data_Get_Struct( self, RVec4, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec4TransformTransposed( &out, m, v );
 
     return RVec4_from_source( &out );
@@ -7022,8 +7098,8 @@ RVec4_transformTransposed_intrusive( VALUE self, VALUE mtx )
     RVec4* v;
     RMtx4* m;
 
-    Data_Get_Struct( self, RVec4, v );
-    Data_Get_Struct( mtx, RMtx4, m );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
+    TypedData_Get_Struct( mtx, RMtx4, &RMtx4_type, m );
     RVec4TransformTransposed( v, m, v );
 
     return self;
@@ -7040,7 +7116,7 @@ RVec4_normalize( VALUE self )
     RVec4* v = NULL;
     RVec4 out;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     RVec4Normalize( &out, v );
 
     return RVec4_from_source( &out );
@@ -7056,7 +7132,7 @@ RVec4_normalize_intrusive( VALUE self )
 {
     RVec4* v = NULL;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     RVec4Normalize( v, v );
 
     return self;
@@ -7084,7 +7160,7 @@ RVec4_op_unary_minus( VALUE self )
     RVec4* v = NULL;
     RVec4 out;
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     RVec4Scale( &out, v, (rmReal)(-1) );
 
     return RVec4_from_source( &out );
@@ -7113,8 +7189,8 @@ RVec4_op_binary_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec4, v1 );
-    Data_Get_Struct( other,  RVec4, v2 );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v1 );
+    TypedData_Get_Struct( other,  RVec4, &RVec4_type, v2 );
     RVec4Add( &result, v1, v2 );
 
     return RVec4_from_source( &result );
@@ -7143,8 +7219,8 @@ RVec4_op_binary_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec4, v1 );
-    Data_Get_Struct( other,  RVec4, v2 );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v1 );
+    TypedData_Get_Struct( other,  RVec4, &RVec4_type, v2 );
     RVec4Sub( &result, v1, v2 );
 
     return RVec4_from_source( &result );
@@ -7167,7 +7243,7 @@ RVec4_op_binary_mult( VALUE self, VALUE other )
     case T_FIXNUM:
     case T_FLOAT:
     {
-        Data_Get_Struct( self, RVec4, v );
+        TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
         f = NUM2DBL( other );
         RVec4Scale( &result, v, f );
 
@@ -7208,8 +7284,8 @@ RVec4_op_binary_eq( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec4, v1 );
-    Data_Get_Struct( other, RVec4, v2 );
+    TypedData_Get_Struct( self,  RVec4, &RVec4_type, v1 );
+    TypedData_Get_Struct( other, RVec4, &RVec4_type, v2 );
 
     if ( !RVec4Equal(v1,v2) )
         return Qfalse;
@@ -7239,8 +7315,8 @@ RVec4_op_assign_plus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec4, v1 );
-    Data_Get_Struct( other, RVec4, v2 );
+    TypedData_Get_Struct( self,  RVec4, &RVec4_type, v1 );
+    TypedData_Get_Struct( other, RVec4, &RVec4_type, v2 );
 
     RVec4Add( v1, v1, v2 );
 
@@ -7269,8 +7345,8 @@ RVec4_op_assign_minus( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self,  RVec4, v1 );
-    Data_Get_Struct( other, RVec4, v2 );
+    TypedData_Get_Struct( self,  RVec4, &RVec4_type, v1 );
+    TypedData_Get_Struct( other, RVec4, &RVec4_type, v2 );
 
     RVec4Sub( v1, v1, v2 );
 
@@ -7299,7 +7375,7 @@ RVec4_op_assign_mult( VALUE self, VALUE other )
     }
 #endif
 
-    Data_Get_Struct( self, RVec4, v );
+    TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
     f = NUM2DBL( other );
     RVec4Scale( v, v, f );
 
