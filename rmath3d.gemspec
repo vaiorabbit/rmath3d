@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "rmath3d"
-  gem.version       = "1.1.0"
+  gem.version       = "1.2.0"
   gem.authors       = ["vaiorabbit"]
   gem.email         = ["vaiorabbit@gmail.com"]
   gem.summary       = %q{Ruby Math Module for 3D Applications}
@@ -20,6 +20,8 @@ Gem::Specification.new do |gem|
 Provides vector2/3/4, matrix2x2/3x3/4x4 and quaternion in C extension library form (and plain Ruby form with the same interface for debugging use).
 Notice: This library provides native extension. You must setup development environment (or DevKit) before installation.
   DESC
+
+  gem.required_ruby_version = '>= 2.0.0'
 
   gem.files = 
     Dir.glob("ext/rmath3d/*.{c,h,rb}") +

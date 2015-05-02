@@ -1,3 +1,7 @@
+2015-05-02  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* Ruby 1.9.3 and prior versions are no longer supported. Ref.: https://www.ruby-lang.org/en/news/2015/02/23/support-for-ruby-1-9-3-has-ended/
+
 2015-04-12  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* RVec2.c|h, RMtx2.c|h: Added.
