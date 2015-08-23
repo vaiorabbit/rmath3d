@@ -935,27 +935,24 @@ RMtx2_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RMtx2_op_binary_eq( VALUE self, VALUE other )
 {
-    RMtx2* m1 = NULL;
-    RMtx2* m2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRMtx2(other) )
+    if ( IsRMtx2(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RMtx2#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RMtx2* m1 = NULL;
+        RMtx2* m2 = NULL;
+
+        TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
+        TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
+
+        if ( !RMtx2Equal(m1,m2) )
+            return Qfalse;
+        else
+            return Qtrue;
+
     }
-#endif
-
-    TypedData_Get_Struct( self,  RMtx2, &RMtx2_type, m1 );
-    TypedData_Get_Struct( other, RMtx2, &RMtx2_type, m2 );
-
-    if ( !RMtx2Equal(m1,m2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*
@@ -2060,27 +2057,23 @@ RMtx3_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RMtx3_op_binary_eq( VALUE self, VALUE other )
 {
-    RMtx3* m1 = NULL;
-    RMtx3* m2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRMtx3(other) )
+    if ( IsRMtx3(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RMtx3#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RMtx3* m1 = NULL;
+        RMtx3* m2 = NULL;
+
+        TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
+        TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
+
+        if ( !RMtx3Equal(m1,m2) )
+            return Qfalse;
+        else
+            return Qtrue;
     }
-#endif
-
-    TypedData_Get_Struct( self,  RMtx3, &RMtx3_type, m1 );
-    TypedData_Get_Struct( other, RMtx3, &RMtx3_type, m2 );
-
-    if ( !RMtx3Equal(m1,m2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*
@@ -3616,27 +3609,23 @@ RMtx4_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RMtx4_op_binary_eq( VALUE self, VALUE other )
 {
-    RMtx4* m1 = NULL;
-    RMtx4* m2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRMtx4(other) )
+    if ( IsRMtx4(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RMtx4#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RMtx4* m1 = NULL;
+        RMtx4* m2 = NULL;
+
+        TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
+        TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
+
+        if ( !RMtx4Equal(m1,m2) )
+            return Qfalse;
+        else
+            return Qtrue;
     }
-#endif
-
-    TypedData_Get_Struct( self,  RMtx4, &RMtx4_type, m1 );
-    TypedData_Get_Struct( other, RMtx4, &RMtx4_type, m2 );
-
-    if ( !RMtx4Equal(m1,m2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*
@@ -4549,27 +4538,23 @@ RQuat_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RQuat_op_binary_eq( VALUE self, VALUE other )
 {
-    RQuat* v1 = NULL;
-    RQuat* v2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRQuat(other) )
+    if ( IsRQuat(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RQuat#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RQuat* v1 = NULL;
+        RQuat* v2 = NULL;
+
+        TypedData_Get_Struct( self,  RQuat, &RQuat_type, v1 );
+        TypedData_Get_Struct( other, RQuat, &RQuat_type, v2 );
+
+        if ( !RQuatEqual(v1,v2) )
+            return Qfalse;
+        else
+            return Qtrue;
     }
-#endif
-
-    TypedData_Get_Struct( self,  RQuat, &RQuat_type, v1 );
-    TypedData_Get_Struct( other, RQuat, &RQuat_type, v2 );
-
-    if ( !RQuatEqual(v1,v2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*
@@ -5365,27 +5350,23 @@ RVec2_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RVec2_op_binary_eq( VALUE self, VALUE other )
 {
-    RVec2* v1 = NULL;
-    RVec2* v2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRVec2(other) )
+    if ( IsRVec2(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RVec2#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RVec2* v1 = NULL;
+        RVec2* v2 = NULL;
+
+        TypedData_Get_Struct( self,  RVec2, &RVec2_type, v1 );
+        TypedData_Get_Struct( other, RVec2, &RVec2_type, v2 );
+
+        if ( !RVec2Equal(v1,v2) )
+            return Qfalse;
+        else
+            return Qtrue;
     }
-#endif
-
-    TypedData_Get_Struct( self,  RVec2, &RVec2_type, v1 );
-    TypedData_Get_Struct( other, RVec2, &RVec2_type, v2 );
-
-    if ( !RVec2Equal(v1,v2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*
@@ -6367,27 +6348,23 @@ RVec3_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RVec3_op_binary_eq( VALUE self, VALUE other )
 {
-    RVec3* v1 = NULL;
-    RVec3* v2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRVec3(other) )
+    if ( IsRVec3(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RVec3#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RVec3* v1 = NULL;
+        RVec3* v2 = NULL;
+
+        TypedData_Get_Struct( self,  RVec3, &RVec3_type, v1 );
+        TypedData_Get_Struct( other, RVec3, &RVec3_type, v2 );
+
+        if ( !RVec3Equal(v1,v2) )
+            return Qfalse;
+        else
+            return Qtrue;
     }
-#endif
-
-    TypedData_Get_Struct( self,  RVec3, &RVec3_type, v1 );
-    TypedData_Get_Struct( other, RVec3, &RVec3_type, v2 );
-
-    if ( !RVec3Equal(v1,v2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*
@@ -7270,27 +7247,23 @@ RVec4_op_binary_mult( VALUE self, VALUE other )
 static VALUE
 RVec4_op_binary_eq( VALUE self, VALUE other )
 {
-    RVec4* v1 = NULL;
-    RVec4* v2 = NULL;
-
-#ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( !IsRVec4(other) )
+    if ( IsRVec4(other) )
     {
-        rb_raise( rb_eTypeError,
-                  "RVec4#== : Unknown type %s.",
-                  rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
-            );
-        return Qnil;
+        RVec4* v1 = NULL;
+        RVec4* v2 = NULL;
+
+        TypedData_Get_Struct( self,  RVec4, &RVec4_type, v1 );
+        TypedData_Get_Struct( other, RVec4, &RVec4_type, v2 );
+
+        if ( !RVec4Equal(v1,v2) )
+            return Qfalse;
+        else
+            return Qtrue;
     }
-#endif
-
-    TypedData_Get_Struct( self,  RVec4, &RVec4_type, v1 );
-    TypedData_Get_Struct( other, RVec4, &RVec4_type, v2 );
-
-    if ( !RVec4Equal(v1,v2) )
-        return Qfalse;
     else
-        return Qtrue;
+    {
+        return Qfalse;
+    }
 }
 
 /*

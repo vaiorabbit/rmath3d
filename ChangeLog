@@ -1,3 +1,8 @@
+2015-08-23  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* rmath3d.c (def ==): Removed control path returning Qnil.
+	* rmath3d_plain.rb (def ==): Removed control path returning Qnil.
+
 2015-05-02  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Ruby 1.9.3 and prior versions are no longer supported. Ref.: https://www.ruby-lang.org/en/news/2015/02/23/support-for-ruby-1-9-3-has-ended/

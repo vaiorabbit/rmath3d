@@ -440,19 +440,18 @@ module RMath3D
     # mtx1 == mtx2 : evaluates equality.
     #
     def ==( other )
-      if ( other.class != RMtx2 )
-        raise TypeError, "RMtx2#==(other) : Unknown type #{other.class} given as RMtx2."
-        return nil
-      end
-
-      for row in 0...2 do
-        for col in 0...2 do
-          if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
-            return false
+      if other.class == RMtx2
+        for row in 0...2 do
+          for col in 0...2 do
+            if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
+              return false
+            end
           end
         end
+        return true
+      else
+        return false
       end
-      return true
     end
 
     #
@@ -1129,19 +1128,18 @@ module RMath3D
     # mtx1 == mtx2 : evaluates equality.
     #
     def ==( other )
-      if ( other.class != RMtx3 )
-        raise TypeError, "RMtx3#==(other) : Unknown type #{other.class} given as RMtx3."
-        return nil
-      end
-
-      for row in 0...3 do
-        for col in 0...3 do
-          if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
-            return false
+      if other.class == RMtx3
+        for row in 0...3 do
+          for col in 0...3 do
+            if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
+              return false
+            end
           end
         end
+        return true
+      else
+        return false
       end
-      return true
     end
 
     #
@@ -2081,19 +2079,18 @@ module RMath3D
     # mtx1 == mtx2 : evaluates equality.
     #
     def ==( other )
-      if ( other.class != RMtx4 )
-        raise TypeError, "RMtx4#==(other) : Unknown type #{other.class} given as RMtx4."
-        return nil
-      end
-
-      for row in 0...4 do
-        for col in 0...4 do
-          if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
-            return false
+      if other.class == RMtx4
+        for row in 0...4 do
+          for col in 0...4 do
+            if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
+              return false
+            end
           end
         end
+        return true
+      else
+        return false
       end
-      return true
     end
 
     #
@@ -2258,7 +2255,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )\n"
+      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )"
     end
 
     #
@@ -2630,16 +2627,15 @@ module RMath3D
     # quat1 == quat2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RQuat
-        raise TypeError, "RQuat#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON &&
-          (z-other.z).abs<=Float::EPSILON &&
-          (w-other.w).abs<=Float::EPSILON
-        return true
+      if other.class == RQuat
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON &&
+            (z-other.z).abs<=Float::EPSILON &&
+            (w-other.w).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -2859,7 +2855,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]} )\n"
+      return "( #{@e[0]}, #{@e[1]} )"
     end
 
     #
@@ -3081,14 +3077,13 @@ module RMath3D
     # vec1 == vec2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RVec2
-        raise TypeError, "RVec2#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON
-        return true
+      if other.class == RVec2
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -3199,7 +3194,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]}, #{@e[2]} )\n"
+      return "( #{@e[0]}, #{@e[1]}, #{@e[2]} )"
     end
 
     #
@@ -3635,15 +3630,14 @@ module RMath3D
     # vec1 == vec2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RVec3
-        raise TypeError, "RVec3#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON &&
-          (z-other.z).abs<=Float::EPSILON
-        return true
+      if other.class == RVec3
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON &&
+            (z-other.z).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -3759,7 +3753,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )\n"
+      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )"
     end
 
     #
@@ -4082,16 +4076,15 @@ module RMath3D
     # vec1 == vec2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RVec4
-        raise TypeError, "RVec4#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON &&
-          (z-other.z).abs<=Float::EPSILON &&
-          (w-other.w).abs<=Float::EPSILON
-        return true
+      if other.class == RVec4
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON &&
+            (z-other.z).abs<=Float::EPSILON &&
+            (w-other.w).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
