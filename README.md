@@ -4,7 +4,7 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-*   Last Update: Aug 23, 2015
+*   Last Update: Jul 22, 2017
 *   Since: Jul 20, 2008
 
 ## Features ##

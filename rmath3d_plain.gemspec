@@ -4,13 +4,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "rmath3d_plain"
-  gem.version       = "1.2.1"
+  gem.version       = "1.2.2"
   gem.authors       = ["vaiorabbit"]
   gem.email         = ["vaiorabbit@gmail.com"]
   gem.summary       = %q{Ruby Math Module for 3D Applications}
   gem.homepage      = "https://github.com/vaiorabbit/rmath3d"
   gem.require_paths = ["lib"]
-  gem.license       = "zlib/libpng"
+  gem.license       = "Zlib"
 
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
 

@@ -347,7 +347,7 @@ RMtx3Scale( RMtx3* out, const RMtx3* m, rmReal f )
 
 /*
 RMath : Ruby math module for 3D Applications
-Copyright (c) 2008- vaiorabbit  <http://twitter.com/vaiorabbit>
+Copyright (c) 2008-2017 vaiorabbit  <http://twitter.com/vaiorabbit>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

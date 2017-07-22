@@ -200,45 +200,32 @@ RMtx2_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RMtx2SetElements( v,
                               f,f,
                               f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRMtx2(arg) )
-            {
-                /* Copy Constructor */
-                RMtx2* other;
-                TypedData_Get_Struct( arg, RMtx2, &RMtx2_type, other );
-                RMtx2Copy( v, other );
-                return self;
-            }
-            else
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRMtx2(arg) ) {
+                    /* Copy Constructor */
+                    RMtx2* other;
+                    TypedData_Get_Struct( arg, RMtx2, &RMtx2_type, other );
+                    RMtx2Copy( v, other );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
+                rb_raise( rb_eTypeError,
+                          "RMtx2_new : Unknown type %s.",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                    );
                 return Qnil;
+            }
         }
-        break;
-
-        default:
-        {
-            rb_raise( rb_eTypeError,
-                      "RMtx2_new : Unknown type %s.",
-                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
-                );
-            return Qnil;
-        }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -251,26 +238,16 @@ RMtx2_initialize( int argc, VALUE* argv, VALUE self )
             for ( col = 0; col < 2; ++col )
             {
                 int i = 2*row + col;
-                switch ( TYPE( argv[i] ) )
-                {
-                case T_FIXNUM:
-                case T_FLOAT:
-                {
+                if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                     rmReal f = NUM2DBL( argv[i] );
                     RMtx2SetElement( v, row, col, f );
-                }
-                break;
-
-                default:
-                {
+                } else {
                     rb_raise( rb_eTypeError,
                               "RMtx2_new : Unknown type %s. at arg %d",
                               rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                               i
                         );
                     return Qnil;
-                }
-                break;
                 }
             } /* End : for ( col = 0; col < 2; ++col ) */
         } /* End : for ( row = 0; row < 2; ++row ) */
@@ -371,29 +348,18 @@ RMtx2_coerce( VALUE self, VALUE other )
     RMtx2* v = NULL;
     TypedData_Get_Struct( self, RMtx2, &RMtx2_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RMtx2'
          * -> try again as 'RMtx2 (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -1114,11 +1080,7 @@ RMtx3_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RMtx3SetElements( v,
@@ -1126,34 +1088,25 @@ RMtx3_initialize( int argc, VALUE* argv, VALUE self )
                               f,f,f,
                               f,f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRMtx3(arg) )
-            {
-                /* Copy Constructor */
-                RMtx3* other;
-                TypedData_Get_Struct( arg , RMtx3, &RMtx3_type, other );
-                RMtx3Copy( v, other );
-                return self;
-            }
-            else
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRMtx3(arg) ) {
+                    /* Copy Constructor */
+                    RMtx3* other;
+                    TypedData_Get_Struct( arg , RMtx3, &RMtx3_type, other );
+                    RMtx3Copy( v, other );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
+                rb_raise( rb_eTypeError,
+                          "RMtx3_new : Unknown type %s.",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                    );
                 return Qnil;
+            }
         }
-        break;
-
-        default:
-        {
-            rb_raise( rb_eTypeError,
-                      "RMtx3_new : Unknown type %s.",
-                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
-                );
-            return Qnil;
-        }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -1166,26 +1119,16 @@ RMtx3_initialize( int argc, VALUE* argv, VALUE self )
             for ( col = 0; col < 3; ++col )
             {
                 int i = 3*row + col;
-                switch ( TYPE( argv[i] ) )
-                {
-                case T_FIXNUM:
-                case T_FLOAT:
-                {
+                if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                     rmReal f = NUM2DBL( argv[i] );
                     RMtx3SetElement( v, row, col, f );
-                }
-                break;
-
-                default:
-                {
+                } else {
                     rb_raise( rb_eTypeError,
                               "RMtx3_new : Unknown type %s. at arg %d",
                               rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                               i
                         );
                     return Qnil;
-                }
-                break;
                 }
             } /* End : for ( col = 0; col < 3; ++col ) */
         } /* End : for ( row = 0; row < 3; ++row ) */
@@ -1286,29 +1229,18 @@ RMtx3_coerce( VALUE self, VALUE other )
     RMtx3* v = NULL;
     TypedData_Get_Struct( self, RMtx3, &RMtx3_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RMtx3'
          * -> try again as 'RMtx3 (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -2235,11 +2167,7 @@ RMtx4_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RMtx4SetElements( v,
@@ -2248,34 +2176,25 @@ RMtx4_initialize( int argc, VALUE* argv, VALUE self )
                               f,f,f,f,
                               f,f,f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRMtx4(arg) )
-            {
-                /* Copy Constructor */
-                RMtx4* other;
-                TypedData_Get_Struct( arg , RMtx4, &RMtx4_type, other );
-                RMtx4Copy( v, other );
-                return self;
-            }
-            else
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRMtx4(arg) ) {
+                    /* Copy Constructor */
+                    RMtx4* other;
+                    TypedData_Get_Struct( arg , RMtx4, &RMtx4_type, other );
+                    RMtx4Copy( v, other );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
+                rb_raise( rb_eTypeError,
+                          "RMtx4_new : Unknown type %s.",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                    );
                 return Qnil;
+            }
         }
-        break;
-
-        default:
-        {
-            rb_raise( rb_eTypeError,
-                      "RMtx4_new : Unknown type %s.",
-                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
-                );
-            return Qnil;
-        }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -2288,26 +2207,16 @@ RMtx4_initialize( int argc, VALUE* argv, VALUE self )
             for ( col = 0; col < 4; ++col )
             {
                 int i = 4*row + col;
-                switch ( TYPE( argv[i] ) )
-                {
-                case T_FIXNUM:
-                case T_FLOAT:
-                {
+                if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                     rmReal f = NUM2DBL( argv[i] );
                     RMtx4SetElement( v, row, col, f );
-                }
-                break;
-
-                default:
-                {
+                } else {
                     rb_raise( rb_eTypeError,
                               "RMtx4_new : Unknown type %s. at arg %d",
                               rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                               i
                         );
                     return Qnil;
-                }
-                break;
                 }
             } /* End : for ( col = 0; col < 4; ++col ) */
         } /* End : for ( row = 0; row < 4; ++row ) */
@@ -2410,29 +2319,18 @@ RMtx4_coerce( VALUE self, VALUE other )
     RMtx4* v = NULL;
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RMtx4'
          * -> try again as 'RMtx4 (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -3784,43 +3682,30 @@ RQuat_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RQuatSetElements( v, f,f,f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRQuat(arg) )
-            {
-                /* Copy Constructor */
-                RQuat* other;
-                TypedData_Get_Struct( arg , RQuat, &RQuat_type, other );
-                RQuatSetElements( v, other->x, other->y, other->z, other->w );
-                return self;
-            }
-            else
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRQuat(arg) ) {
+                    /* Copy Constructor */
+                    RQuat* other;
+                    TypedData_Get_Struct( arg , RQuat, &RQuat_type, other );
+                    RQuatSetElements( v, other->x, other->y, other->z, other->w );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
+                rb_raise( rb_eTypeError,
+                          "RQuat_new : Unknown type %s.",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                    );
                 return Qnil;
+            }
         }
-        break;
-
-        default:
-        {
-            rb_raise( rb_eTypeError,
-                      "RQuat_new : Unknown type %s.",
-                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
-                );
-            return Qnil;
-        }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -3830,26 +3715,16 @@ RQuat_initialize( int argc, VALUE* argv, VALUE self )
         int i;
         for ( i = 0; i < argc; ++i )
         {
-            switch ( TYPE( argv[i] ) )
-            {
-            case T_FIXNUM:
-            case T_FLOAT:
-            {
+            if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                 rmReal f = NUM2DBL( argv[i] );
                 v->e[i] = f;
-            }
-            break;
-
-            default:
-            {
+            } else {
                 rb_raise( rb_eTypeError,
                           "RQuat_new : Unknown type %s. at arg %d",
                           rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                           i
                     );
                 return Qnil;
-            }
-            break;
             }
         } /* End : for ( i = 0; i < argc; ++i ) */
 
@@ -3936,29 +3811,18 @@ RQuat_coerce( VALUE self, VALUE other )
     RQuat* v = NULL;
     TypedData_Get_Struct( self, RQuat, &RQuat_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RQuat'
          * -> try again as 'RQuat (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -4506,27 +4370,18 @@ RQuat_op_binary_mult( VALUE self, VALUE other )
     }
     else
     {
-        switch( TYPE(other) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
             f = NUM2DBL( other );
             RQuatScale( &result, v, f );
 
             return RQuat_from_source( &result );
-        }
-        break;
-
-        default:
-        {
+        } else {
             rb_raise( rb_eTypeError,
                       "RQuat#* : Unknown type %s.",
                       rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
                 );
             return Qnil;
         }
-        } /* End : switch( TYPE(other) ) */
     }
 }
 
@@ -4640,7 +4495,7 @@ RQuat_op_assign_mult( VALUE self, VALUE other )
     else
     {
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
-        if ( TYPE(other) != T_FIXNUM && TYPE(other) != T_FLOAT )
+        if ( !RB_FLOAT_TYPE_P(other) && !RB_INTEGER_TYPE_P(other) )
         {
             rb_raise( rb_eTypeError,
                       "RQuat#mul! : Unknown type %s.",
@@ -4785,43 +4640,30 @@ RVec2_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RVec2SetElements( v, f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRVec2(arg) )
-            {
-                /* Copy Constructor */
-                RVec2* other;
-                TypedData_Get_Struct( arg , RVec2, &RVec2_type, other );
-                RVec2SetElements( v, other->x, other->y );
-                return self;
-            }
-            else
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRVec2(arg) ) {
+                    /* Copy Constructor */
+                    RVec2* other;
+                    TypedData_Get_Struct( arg , RVec2, &RVec2_type, other );
+                    RVec2SetElements( v, other->x, other->y );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
+                rb_raise( rb_eTypeError,
+                          "RVec2_new : Unknown type %s.",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                    );
                 return Qnil;
+            }
         }
-        break;
-
-        default:
-        {
-            rb_raise( rb_eTypeError,
-                      "RVec2_new : Unknown type %s.",
-                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
-                );
-            return Qnil;
-        }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -4831,26 +4673,16 @@ RVec2_initialize( int argc, VALUE* argv, VALUE self )
         int i;
         for ( i = 0; i < argc; ++i )
         {
-            switch ( TYPE( argv[i] ) )
-            {
-            case T_FIXNUM:
-            case T_FLOAT:
-            {
+            if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                 rmReal f = NUM2DBL( argv[i] );
                 v->e[i] = f;
-            }
-            break;
-
-            default:
-            {
+            } else {
                 rb_raise( rb_eTypeError,
                           "RVec2_new : Unknown type %s. at arg %d",
                           rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                           i
                     );
                 return Qnil;
-            }
-            break;
             }
         } /* End : for ( i = 0; i < argc; ++i ) */
 
@@ -4935,29 +4767,18 @@ RVec2_coerce( VALUE self, VALUE other )
     RVec2* v = NULL;
     TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RVec2'
          * -> try again as 'RVec2 (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -5318,28 +5139,19 @@ RVec2_op_binary_mult( VALUE self, VALUE other )
     RVec2 result;
     rmReal f;
 
-    switch( TYPE(other) )
-    {
-    case T_FIXNUM:
-    case T_FLOAT:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         TypedData_Get_Struct( self, RVec2, &RVec2_type, v );
         f = NUM2DBL( other );
         RVec2Scale( &result, v, f );
 
         return RVec2_from_source( &result );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "RVec2#* : Unknown type %s.",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
             );
         return Qnil;
     }
-    } /* End : switch( TYPE(other) ) */
 }
 
 /*
@@ -5441,7 +5253,7 @@ RVec2_op_assign_mult( VALUE self, VALUE other )
     rmReal  f;
 
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( TYPE(other) != T_FIXNUM && TYPE(other) != T_FLOAT )
+    if ( !RB_FLOAT_TYPE_P(other) && !RB_INTEGER_TYPE_P(other) )
     {
         rb_raise( rb_eTypeError,
                   "RVec2#*= : Unknown type %s.",
@@ -5528,43 +5340,30 @@ RVec3_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RVec3SetElements( v, f,f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRVec3(arg) )
-            {
-                /* Copy Constructor */
-                RVec3* other;
-                TypedData_Get_Struct( arg , RVec3, &RVec3_type, other );
-                RVec3SetElements( v, other->x, other->y, other->z );
-                return self;
-            }
-            else
-                return Qnil;
-        }
-        break;
-
-        default:
-        {
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRVec3(arg) ) {
+                    /* Copy Constructor */
+                    RVec3* other;
+                    TypedData_Get_Struct( arg , RVec3, &RVec3_type, other );
+                    RVec3SetElements( v, other->x, other->y, other->z );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
             rb_raise( rb_eTypeError,
                       "RVec3_new : Unknown type %s.",
                       rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
                 );
             return Qnil;
+            }
         }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -5574,26 +5373,16 @@ RVec3_initialize( int argc, VALUE* argv, VALUE self )
         int i;
         for ( i = 0; i < argc; ++i )
         {
-            switch ( TYPE( argv[i] ) )
-            {
-            case T_FIXNUM:
-            case T_FLOAT:
-            {
+            if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                 rmReal f = NUM2DBL( argv[i] );
                 v->e[i] = f;
-            }
-            break;
-
-            default:
-            {
+            } else {
                 rb_raise( rb_eTypeError,
                           "RVec3_new : Unknown type %s. at arg %d",
                           rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                           i
                     );
                 return Qnil;
-            }
-            break;
             }
         } /* End : for ( i = 0; i < argc; ++i ) */
 
@@ -5679,29 +5468,18 @@ RVec3_coerce( VALUE self, VALUE other )
     RVec3* v = NULL;
     TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RVec3'
          * -> try again as 'RVec3 (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -6316,28 +6094,19 @@ RVec3_op_binary_mult( VALUE self, VALUE other )
     RVec3 result;
     rmReal f;
 
-    switch( TYPE(other) )
-    {
-    case T_FIXNUM:
-    case T_FLOAT:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         TypedData_Get_Struct( self, RVec3, &RVec3_type, v );
         f = NUM2DBL( other );
         RVec3Scale( &result, v, f );
 
         return RVec3_from_source( &result );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "RVec3#* : Unknown type %s.",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
             );
         return Qnil;
     }
-    } /* End : switch( TYPE(other) ) */
 }
 
 /*
@@ -6439,7 +6208,7 @@ RVec3_op_assign_mult( VALUE self, VALUE other )
     rmReal  f;
 
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( TYPE(other) != T_FIXNUM && TYPE(other) != T_FLOAT )
+    if ( !RB_FLOAT_TYPE_P(other) && !RB_INTEGER_TYPE_P(other) )
     {
         rb_raise( rb_eTypeError,
                   "RVec3#*= : Unknown type %s.",
@@ -6526,51 +6295,36 @@ RVec4_initialize( int argc, VALUE* argv, VALUE self )
     case 1:
     {
         VALUE arg = argv[0];
-        switch ( TYPE( arg ) )
-        {
-        case T_FIXNUM:
-        case T_FLOAT:
-        {
+        if ( RB_FLOAT_TYPE_P(arg) || RB_INTEGER_TYPE_P(arg) ) {
             /* convert to float */
             rmReal f = NUM2DBL( arg );
             RVec4SetElements( v, f,f,f,f );
             return self;
-        }
-        break;
-
-        case T_DATA:
-        {
-            if ( IsRVec3(arg) )
-            {
-                /* Create from RVec3 */
-                RVec3* other;
-                TypedData_Get_Struct( arg , RVec3, &RVec3_type, other );
-                RVec4SetElements( v, other->x, other->y, other->z, 0.0f );
-                return self;
-            }
-            else if ( IsRVec4(arg) )
-            {
-                /* Copy Constructor */
-                RVec4* other;
-                TypedData_Get_Struct( arg , RVec4, &RVec4_type, other );
-                RVec4SetElements( v, other->x, other->y, other->z, other->w );
-                return self;
-            }
-            else
+        } else {
+            if ( TYPE( arg ) == T_DATA ) {
+                if ( IsRVec3(arg) ) {
+                    /* Create from RVec3 */
+                    RVec3* other;
+                    TypedData_Get_Struct( arg , RVec3, &RVec3_type, other );
+                    RVec4SetElements( v, other->x, other->y, other->z, 0.0f );
+                    return self;
+                } else if ( IsRVec4(arg) ) {
+                    /* Copy Constructor */
+                    RVec4* other;
+                    TypedData_Get_Struct( arg , RVec4, &RVec4_type, other );
+                    RVec4SetElements( v, other->x, other->y, other->z, other->w );
+                    return self;
+                } else {
+                    return Qnil;
+                }
+            } else {
+                rb_raise( rb_eTypeError,
+                          "RVec4_new : Unknown type %s.",
+                          rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
+                    );
                 return Qnil;
+            }
         }
-        break;
-
-        default:
-        {
-            rb_raise( rb_eTypeError,
-                      "RVec4_new : Unknown type %s.",
-                      rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self )
-                );
-            return Qnil;
-        }
-        break;
-        } /* End : switch ( TYPE( arg ) ) */
     } /* End : case 1 */
     break;
 
@@ -6580,26 +6334,16 @@ RVec4_initialize( int argc, VALUE* argv, VALUE self )
         int i;
         for ( i = 0; i < argc; ++i )
         {
-            switch ( TYPE( argv[i] ) )
-            {
-            case T_FIXNUM:
-            case T_FLOAT:
-            {
+            if ( RB_FLOAT_TYPE_P(argv[i]) || RB_INTEGER_TYPE_P(argv[i]) ) {
                 rmReal f = NUM2DBL( argv[i] );
                 v->e[i] = f;
-            }
-            break;
-
-            default:
-            {
+            } else {
                 rb_raise( rb_eTypeError,
                           "RVec4_new : Unknown type %s. at arg %d",
                           rb_special_const_p( self ) ? RSTRING_PTR( rb_inspect( self ) ) : rb_obj_classname( self ),
                           i
                     );
                 return Qnil;
-            }
-            break;
             }
         } /* End : for ( i = 0; i < argc; ++i ) */
 
@@ -6686,29 +6430,18 @@ RVec4_coerce( VALUE self, VALUE other )
     RVec4* v = NULL;
     TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
 
-    switch( TYPE(other) )
-    {
-    case T_FLOAT:
-    case T_FIXNUM:
-    case T_BIGNUM:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         /* 'other (op) RVec4'
          * -> try again as 'RVec4 (op) other'
          */
         return rb_ary_new3( 2,  self, other );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "%s can't be coerced into %s",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other ),
                   rb_obj_classname( self )
             );
         return Qnil;
-    }
-    break;
     }
 }
 
@@ -7215,28 +6948,19 @@ RVec4_op_binary_mult( VALUE self, VALUE other )
     RVec4 result;
     rmReal f;
 
-    switch( TYPE(other) )
-    {
-    case T_FIXNUM:
-    case T_FLOAT:
-    {
+    if ( RB_FLOAT_TYPE_P(other) || RB_INTEGER_TYPE_P(other) ) {
         TypedData_Get_Struct( self, RVec4, &RVec4_type, v );
         f = NUM2DBL( other );
         RVec4Scale( &result, v, f );
 
         return RVec4_from_source( &result );
-    }
-    break;
-
-    default:
-    {
+    } else {
         rb_raise( rb_eTypeError,
                   "RVec4#* : Unknown type %s.",
                   rb_special_const_p( other ) ? RSTRING_PTR( rb_inspect( other ) ) : rb_obj_classname( other )
             );
         return Qnil;
     }
-    } /* End : switch( TYPE(other) ) */
 }
 
 /*
@@ -7338,7 +7062,7 @@ RVec4_op_assign_mult( VALUE self, VALUE other )
     rmReal  f;
 
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
-    if ( TYPE(other) != T_FIXNUM && TYPE(other) != T_FLOAT )
+    if ( !RB_FLOAT_TYPE_P(other) && !RB_INTEGER_TYPE_P(other) )
     {
         rb_raise( rb_eTypeError,
                   "RVec4#*= : Unknown type %s.",
@@ -7820,7 +7544,7 @@ Init_rmath3d()
 
 /*
 RMath : Ruby math module for 3D Applications
-Copyright (c) 2008- vaiorabbit  <http://twitter.com/vaiorabbit>
+Copyright (c) 2008-2017 vaiorabbit  <http://twitter.com/vaiorabbit>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

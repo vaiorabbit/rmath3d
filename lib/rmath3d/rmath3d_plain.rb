@@ -29,7 +29,7 @@ module RMath3D
                0.0, 0.0 ]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0],
                  a[0], a[0] ]
         when RMtx2
@@ -46,7 +46,7 @@ module RMath3D
           for col in 0...2 do
             index = 2*row + col
             case a[index]
-            when Fixnum, Float
+            when Float, Integer, Fixnum, Bignum
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx2#initialize : Unknown type #{a[0].class}."
@@ -88,7 +88,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RMtx2#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -411,7 +411,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return RMtx2.new( arg*self.e00, arg*self.e01,
                           arg*self.e10, arg*self.e11 )
 
@@ -503,7 +503,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e10 = other*self.e10
@@ -560,7 +560,7 @@ module RMath3D
                0.0, 0.0, 0.0 ]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0], a[0],
                  a[0], a[0], a[0],
                  a[0], a[0], a[0] ]
@@ -579,7 +579,7 @@ module RMath3D
           for col in 0...3 do
             index = 3*row + col
             case a[index]
-            when Fixnum, Float
+            when Float, Integer, Fixnum, Bignum
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx3#initialize : Unknown type #{a[0].class}."
@@ -622,7 +622,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RMtx3#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -1098,7 +1098,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return RMtx3.new( arg*self.e00, arg*self.e01, arg*self.e02,
                           arg*self.e10, arg*self.e11, arg*self.e12,
                           arg*self.e20, arg*self.e21, arg*self.e22 )
@@ -1191,7 +1191,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e02 = other*self.e02
@@ -1259,7 +1259,7 @@ module RMath3D
                0.0, 0.0, 0.0, 0.0 ]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0], a[0], a[0],
                  a[0], a[0], a[0], a[0],
                  a[0], a[0], a[0], a[0],
@@ -1280,7 +1280,7 @@ module RMath3D
           for col in 0...4 do
             index = 4*row + col
             case a[index]
-            when Fixnum, Float
+            when Float, Integer, Fixnum, Bignum
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx4#initialize : Unknown type #{a[0].class}."
@@ -1324,7 +1324,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RMtx4#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -2048,7 +2048,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return RMtx4.new( arg*self.e00, arg*self.e01, arg*self.e02, arg*self.e03,
                           arg*self.e10, arg*self.e11, arg*self.e12, arg*self.e13,
                           arg*self.e20, arg*self.e21, arg*self.e22, arg*self.e23,
@@ -2142,7 +2142,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e02 = other*self.e02
@@ -2224,7 +2224,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0], a[0], a[0] ]
         when RQuat
           @e = [ a[0].x, a[0].y, a[0].z, a[0].w ]
@@ -2235,7 +2235,7 @@ module RMath3D
       when 4
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer, Fixnum, Bignum
             @e[index] = elem
           else
             raise TypeError, "RQuat#initialize : Unknown type #{elem.class}."
@@ -2274,7 +2274,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RQuat#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -2613,7 +2613,7 @@ module RMath3D
         z = q1w*q2z + q1x*q2y - q1y*q2x + q1z*q2w
         w = q1w*q2w - q1x*q2x - q1y*q2y - q1z*q2z
         return RQuat.new( x, y, z, w )
-      when Fixnum, Float
+      when Float, Integer, Fixnum, Bignum
         return RQuat.new( @e[0]*arg, @e[1]*arg, @e[2]*arg, @e[3]*arg )
       else
         raise TypeError, "RQuat#* : Unknown type #{arg}."
@@ -2708,7 +2708,7 @@ module RMath3D
 
         return self
 
-      when Fixnum, Float
+      when Float, Integer, Fixnum, Bignum
         self.x *= other
         self.y *= other
         self.z *= other
@@ -2824,7 +2824,7 @@ module RMath3D
         @e = [0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0] ]
         when RVec2
           @e = [ a[0].x, a[0].y ]
@@ -2835,7 +2835,7 @@ module RMath3D
       when 2
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer, Fixnum, Bignum
             @e[index] = elem
           else
             raise TypeError, "RVec2#initialize : Unknown type #{elem.class}."
@@ -2874,7 +2874,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RVec2#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -3063,7 +3063,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float
+      when Float, Integer, Fixnum, Bignum
         return RVec2.new( @e[0]*arg, @e[1]*arg )
       else
         raise TypeError, "RVec2#* : Unknown type #{arg}."
@@ -3129,7 +3129,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( arg )
-      if arg.class != Fixnum && arg.class != Float
+      if !(arg.class == Float || arg.class == Integer || arg.class == Fixnum || arg.class == Bignum)
         raise TypeError, "RVec2#mul! : Unknown type #{arg.class}."
         return nil
       end
@@ -3163,7 +3163,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0], a[0] ]
         when RVec3
           @e = [ a[0].x, a[0].y, a[0].z ]
@@ -3174,7 +3174,7 @@ module RMath3D
       when 3
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer, Fixnum, Bignum
             @e[index] = elem
           else
             raise TypeError, "RVec3#initialize : Unknown type #{elem.class}."
@@ -3213,7 +3213,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RVec3#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -3616,7 +3616,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float
+      when Float, Integer, Fixnum, Bignum
         return RVec3.new( @e[0]*arg, @e[1]*arg, @e[2]*arg )
       else
         raise TypeError, "RVec3#* : Unknown type #{arg}."
@@ -3685,7 +3685,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( arg )
-      if arg.class != Fixnum && arg.class != Float
+      if !(arg.class == Float || arg.class == Integer || arg.class == Fixnum || arg.class == Bignum)
         raise TypeError, "RVec3#mul! : Unknown type #{arg.class}."
         return nil
       end
@@ -3720,7 +3720,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer, Fixnum, Bignum
           @e = [ a[0], a[0], a[0], a[0] ]
         when RVec3
           @e = [ a[0].x, a[0].y, a[0].z, 0.0 ]
@@ -3733,7 +3733,7 @@ module RMath3D
       when 4
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer, Fixnum, Bignum
             @e[index] = elem
           else
             raise TypeError, "RVec4#initialize : Unknown type #{elem.class}."
@@ -3772,7 +3772,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer, Fixnum, Bignum
         return [ self, arg ]
       else
         raise TypeError, "RVec4#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -4062,7 +4062,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float
+      when Float, Integer, Fixnum, Bignum
         return RVec4.new( @e[0]*arg, @e[1]*arg, @e[2]*arg, @e[3]*arg )
       else
         raise TypeError, "RVec4#* : Unknown type #{arg}."
@@ -4134,7 +4134,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( other )
-      if other.class != Fixnum && other.class != Float
+      if !(other.class == Float || other.class == Integer || other.class == Fixnum || other.class == Bignum)
         raise TypeError, "RVec4#mul! : Unknown type #{other.class}."
         return nil
       end
@@ -4152,7 +4152,7 @@ end
 
 =begin
 RMath : Ruby math module for 3D Applications
-Copyright (c) 2008- vaiorabbit  <http://twitter.com/vaiorabbit>
+Copyright (c) 2008-2017 vaiorabbit  <http://twitter.com/vaiorabbit>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
