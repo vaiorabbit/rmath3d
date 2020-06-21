@@ -1913,7 +1913,7 @@ module RMath3D
     # * Far clip plane distance (+zfar+)
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveRH( width, height, znear, zfar, ndc_homogeneous )
+    def perspectiveRH( width, height, znear, zfar, ndc_homogeneous = true)
       perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
       return self
     end
@@ -1928,11 +1928,11 @@ module RMath3D
     # * Far clip plane distance (+zfar+)
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveFovRH( fovy_radian, aspect, znear, zfar, ndc_homogeneous )
+    def perspectiveFovRH( fovy_radian, aspect, znear, zfar, ndc_homogeneous = true)
       f = Math::tan( fovy_radian / 2.0 )
       f = 1.0 / f
 
-      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / (zfar-znear)
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
       d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
       setIdentity()
@@ -1958,10 +1958,10 @@ module RMath3D
     # * Far clip plane distance (+zfar+)
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous )
+    def perspectiveOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous = true)
       a = (right+left) / (right-left)
       b = (top+bottom) / (top-bottom)
-      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / (zfar-znear)
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
       d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
       setIdentity()
@@ -1988,7 +1988,7 @@ module RMath3D
     # * Far clip plane distance (+zfar+)
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def orthoRH( width, height, znear, zfar, ndc_homogeneous )
+    def orthoRH( width, height, znear, zfar, ndc_homogeneous = true)
       orthoOffCenterRH( -width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
       return self
     end
@@ -2005,7 +2005,7 @@ module RMath3D
     # * Far clip plane distance (+zfar+)
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def orthoOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous )
+    def orthoOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous = true)
       tx = -(right+left) / (right-left)
       ty = -(top+bottom) / (top-bottom)
       tz = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -znear / (zfar-znear)

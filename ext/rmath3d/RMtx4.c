@@ -493,7 +493,7 @@ RMtx4PerspectiveFovRH( RMtx4* out, rmReal fovy_radian, rmReal aspect, rmReal zne
     rmReal f = rmTan( fovy_radian / 2.0f );
     f = 1.0f / f;
 
-    rmReal C = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / (zfar-znear);
+    rmReal C = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / -(zfar-znear);
     rmReal D = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear);
 
     RMtx4Identity( out );
@@ -513,7 +513,7 @@ RMtx4PerspectiveOffCenterRH( RMtx4* out, rmReal left, rmReal right, rmReal botto
 {
     rmReal A = (right+left) / (right-left);
     rmReal B = (top+bottom) / (top-bottom);
-    rmReal C = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / (zfar-znear);
+    rmReal C = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear);
     rmReal D = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear);
 
     RMtx4Identity( out );

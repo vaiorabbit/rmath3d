@@ -258,7 +258,7 @@ RMtx2_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RMtx2_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RMtx2_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -377,7 +377,7 @@ RMtx2_setElements( int argc, VALUE* argv, VALUE self )
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
     if ( argc != 4 )
     {
-        rb_raise( rb_eRuntimeError, "RMtx2_setElements : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RMtx2_setElements : wrong # of arguments (%d)", argc );
         return Qnil;
     }
 #endif
@@ -1139,7 +1139,7 @@ RMtx3_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RMtx3_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RMtx3_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -1258,7 +1258,7 @@ RMtx3_setElements( int argc, VALUE* argv, VALUE self )
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
     if ( argc != 9 )
     {
-        rb_raise( rb_eRuntimeError, "RMtx3_setElements : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RMtx3_setElements : wrong # of arguments (%d)", argc );
         return Qnil;
     }
 #endif
@@ -2227,7 +2227,7 @@ RMtx4_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RMtx4_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RMtx4_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -2348,7 +2348,7 @@ RMtx4_setElements( int argc, VALUE* argv, VALUE self )
 #ifdef RMATH_ENABLE_ARGUMENT_CHECK
     if ( argc != 16 )
     {
-        rb_raise( rb_eRuntimeError, "RMtx4_setElements : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RMtx4_setElements : wrong # of arguments (%d)", argc );
         return Qnil;
     }
 #endif
@@ -3257,18 +3257,26 @@ RMtx4_lookAtRH( VALUE self, VALUE e, VALUE a, VALUE u )
  * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_perspectiveRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf, VALUE ndch )
+RMtx4_perspectiveRH( int argc, VALUE* argv, VALUE self )
 {
+    VALUE w, h, zn, zf, ndch;
     RMtx4* m = NULL;
     rmReal width, height, znear, zfar;
     bool ndc_homogeneous;
+
+    if (argc < 4 || argc > 5)
+    {
+        rb_raise(rb_eArgError, "RMtx4_perspectiveRH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "41", &w, &h, &zn, &zf, &ndch);
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     width  = NUM2DBL(w);
     height = NUM2DBL(h);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
-    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
 
     RMtx4PerspectiveRH( m, width, height, znear, zfar, ndc_homogeneous );
 
@@ -3286,18 +3294,26 @@ RMtx4_perspectiveRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf, VALUE ndc
  * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_perspectiveFovRH( VALUE self, VALUE fovy, VALUE asp, VALUE zn, VALUE zf, VALUE ndch )
+RMtx4_perspectiveFovRH( int argc, VALUE* argv, VALUE self )
 {
+    VALUE fovy, asp, zn, zf, ndch;
     RMtx4* m = NULL;
     rmReal fovy_radian, aspect, znear, zfar;
     bool ndc_homogeneous;
+
+    if (argc < 4 || argc > 5)
+    {
+        rb_raise(rb_eArgError, "RMtx4_perspectiveFovRH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "41", &fovy, &asp, &zn, &zf, &ndch);
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     fovy_radian = NUM2DBL(fovy);
     aspect      = NUM2DBL(asp);
     znear       = NUM2DBL(zn);
     zfar        = NUM2DBL(zf);
-    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
 
     RMtx4PerspectiveFovRH( m, fovy_radian, aspect, znear, zfar, ndc_homogeneous );
 
@@ -3317,11 +3333,19 @@ RMtx4_perspectiveFovRH( VALUE self, VALUE fovy, VALUE asp, VALUE zn, VALUE zf, V
  * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn, VALUE zf, VALUE ndch )
+RMtx4_perspectiveOffCenterRH( int argc, VALUE* argv, VALUE self )
 {
+    VALUE l, r, b, t, zn, zf, ndch;
     RMtx4* m = NULL;
     rmReal left, right, bottom, top, znear, zfar;
     bool ndc_homogeneous;
+
+    if (argc < 6 || argc > 7)
+    {
+        rb_raise(rb_eArgError, "RMtx4_perspectiveOffCenterRH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "61", &l, &r, &b, &t, &zn, &zf, &ndch);
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     left   = NUM2DBL(l);
@@ -3330,7 +3354,7 @@ RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VA
     top    = NUM2DBL(t);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
-    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
 
     RMtx4PerspectiveOffCenterRH( m, left, right, bottom, top, znear, zfar, ndc_homogeneous );
 
@@ -3348,18 +3372,26 @@ RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VA
  * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_orthoRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf, VALUE ndch )
+RMtx4_orthoRH( int argc, VALUE* argv, VALUE self )
 {
+    VALUE w, h, zn, zf, ndch;
     RMtx4* m = NULL;
     rmReal width, height, znear, zfar;
     bool ndc_homogeneous;
+
+    if (argc < 4 || argc > 5)
+    {
+        rb_raise(rb_eArgError, "RMtx4_orthoRH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "41", &w, &h, &zn, &zf, &ndch);
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     width  = NUM2DBL(w);
     height = NUM2DBL(h);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
-    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
 
     RMtx4OrthoRH( m, width, height, znear, zfar, ndc_homogeneous );
 
@@ -3379,11 +3411,19 @@ RMtx4_orthoRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf, VALUE ndch )
  * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_orthoOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn, VALUE zf, VALUE ndch )
+RMtx4_orthoOffCenterRH( int argc, VALUE* argv, VALUE self )
 {
+    VALUE l, r, b, t, zn, zf, ndch;
     RMtx4* m = NULL;
     rmReal left, right, bottom, top, znear, zfar;
     bool ndc_homogeneous;
+
+    if (argc < 6 || argc > 7)
+    {
+        rb_raise(rb_eArgError, "RMtx4_orthoOffCenterRH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "61", &l, &r, &b, &t, &zn, &zf, &ndch);
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     left   = NUM2DBL(l);
@@ -3392,7 +3432,7 @@ RMtx4_orthoOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn
     top    = NUM2DBL(t);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
-    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
 
     RMtx4OrthoOffCenterRH( m, left, right, bottom, top, znear, zfar, ndc_homogeneous );
 
@@ -3751,7 +3791,7 @@ RQuat_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RQuat_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RQuat_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -4709,7 +4749,7 @@ RVec2_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RVec2_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RVec2_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -5409,7 +5449,7 @@ RVec3_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RVec3_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RVec3_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -6370,7 +6410,7 @@ RVec4_initialize( int argc, VALUE* argv, VALUE self )
 
     default:
     {
-        rb_raise( rb_eRuntimeError, "RVec4_initialize : wrong # of arguments (%d)", argc );
+        rb_raise( rb_eArgError, "RVec4_initialize : wrong # of arguments (%d)", argc );
         return Qnil;
     }
     break;
@@ -7341,11 +7381,11 @@ Init_rmath3d()
     rb_define_method( rb_cRMtx4, "scaling", RMtx4_scaling, 3 );
 
     rb_define_method( rb_cRMtx4, "lookAtRH", RMtx4_lookAtRH, 3 );
-    rb_define_method( rb_cRMtx4, "perspectiveRH", RMtx4_perspectiveRH, 5 );
-    rb_define_method( rb_cRMtx4, "perspectiveFovRH", RMtx4_perspectiveFovRH, 5 );
-    rb_define_method( rb_cRMtx4, "perspectiveOffCenterRH", RMtx4_perspectiveOffCenterRH, 7 );
-    rb_define_method( rb_cRMtx4, "orthoRH", RMtx4_orthoRH, 5 );
-    rb_define_method( rb_cRMtx4, "orthoOffCenterRH", RMtx4_orthoOffCenterRH, 7 );
+    rb_define_method( rb_cRMtx4, "perspectiveRH", RMtx4_perspectiveRH, -1 );
+    rb_define_method( rb_cRMtx4, "perspectiveFovRH", RMtx4_perspectiveFovRH, -1 );
+    rb_define_method( rb_cRMtx4, "perspectiveOffCenterRH", RMtx4_perspectiveOffCenterRH, -1 );
+    rb_define_method( rb_cRMtx4, "orthoRH", RMtx4_orthoRH, -1 );
+    rb_define_method( rb_cRMtx4, "orthoOffCenterRH", RMtx4_orthoOffCenterRH, -1 );
 
     rb_define_method( rb_cRMtx4, "+@", RMtx4_op_unary_plus, 0 );
     rb_define_method( rb_cRMtx4, "-@", RMtx4_op_unary_minus, 0 );
