@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
 Provides vector2/3/4, matrix2x2/3x3/4x4 and quaternion in plain Ruby form.
   DESC
 
-  gem.required_ruby_version = '>= 2.0.0'
+  gem.required_ruby_version = '>= 2.4.0'
 
   gem.files = 
     Dir.glob("lib/rmath3d/*.rb") +
