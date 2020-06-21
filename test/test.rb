@@ -1,10 +1,10 @@
-begin 
-  require 'rmath3d/rmath3d'
-rescue LoadError
-  require 'rmath3d/rmath3d_plain'
-end
+# begin 
+#   require 'rmath3d/rmath3d'
+# rescue LoadError
+#   require 'rmath3d/rmath3d_plain'
+# end
 # require_relative '../ext/rmath3d/rmath3d'
-# require_relative '../lib/rmath3d/rmath3d_plain'
+ require_relative '../lib/rmath3d/rmath3d_plain'
 include RMath3D
 
 # Test::Unit

@@ -4,7 +4,7 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-*   Last Update: Jul 22, 2017
+*   Last Update: Jun 21, 2020
 *   Since: Jul 20, 2008
 
 * rmath3d (C Extension Library Implementation) [![Gem Version](https://badge.fury.io/rb/rmath3d.svg)](https://badge.fury.io/rb/rmath3d) [![Gem](https://img.shields.io/gem/dt/rmath3d.svg)](https://rubygems.org/gems/rmath3d)

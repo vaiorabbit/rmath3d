@@ -3247,59 +3247,65 @@ RMtx4_lookAtRH( VALUE self, VALUE e, VALUE a, VALUE u )
 }
 
 /*
- * call-seq: perspectiveRH(width,height,znear,zfar) -> self
+ * call-seq: perspectiveRH(width,height,znear,zfar,ndc_homogeneous) -> self
  *
  * Builds a perspective projection matrix for a right-handed coordinate system from:
  * * View volume width (+width+)
  * * View volume height (+height+)
  * * Near clip plane distance (+znear+)
  * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_perspectiveRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf )
+RMtx4_perspectiveRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf, VALUE ndch )
 {
     RMtx4* m = NULL;
     rmReal width, height, znear, zfar;
+    bool ndc_homogeneous;
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     width  = NUM2DBL(w);
     height = NUM2DBL(h);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
+    ndc_homogeneous = (ndch == Qtrue) ? true : false;
 
-    RMtx4PerspectiveRH( m, width, height, znear, zfar );
+    RMtx4PerspectiveRH( m, width, height, znear, zfar, ndc_homogeneous );
 
     return self;
 }
 
 /*
- * call-seq: perspectiveFovRH(fovy,aspect,znear,zfar) -> self
+ * call-seq: perspectiveFovRH(fovy,aspect,znear,zfar,ndc_homogeneous) -> self
  *
  * Builds a perspective projection matrix for a right-handed coordinate system from:
  * * Field of view in y direction (+fovy+ radian)
  * * Aspect ratio (+aspect+)
  * * Near clip plane distance (+znear+)
  * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_perspectiveFovRH( VALUE self, VALUE fovy, VALUE asp, VALUE zn, VALUE zf )
+RMtx4_perspectiveFovRH( VALUE self, VALUE fovy, VALUE asp, VALUE zn, VALUE zf, VALUE ndch )
 {
     RMtx4* m = NULL;
     rmReal fovy_radian, aspect, znear, zfar;
+    bool ndc_homogeneous;
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     fovy_radian = NUM2DBL(fovy);
     aspect      = NUM2DBL(asp);
     znear       = NUM2DBL(zn);
     zfar        = NUM2DBL(zf);
+    ndc_homogeneous = (ndch == Qtrue) ? true : false;
 
-    RMtx4PerspectiveFovRH( m, fovy_radian, aspect, znear, zfar );
+    RMtx4PerspectiveFovRH( m, fovy_radian, aspect, znear, zfar, ndc_homogeneous );
 
     return self;
 }
 
 /*
- * call-seq: perspectiveOffCenterRH(left,right,bottom,top,znear,zfar) -> self
+ * call-seq: perspectiveOffCenterRH(left,right,bottom,top,znear,zfar,ndc_homogeneous) -> self
  *
  * Builds a perspective projection matrix for a right-handed coordinate system from:
  * * Minimum value of the view volume width (+left+)
@@ -3308,12 +3314,14 @@ RMtx4_perspectiveFovRH( VALUE self, VALUE fovy, VALUE asp, VALUE zn, VALUE zf )
  * * Maximum value of the view volume height (+top+)
  * * Near clip plane distance (+znear+)
  * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn, VALUE zf )
+RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn, VALUE zf, VALUE ndch )
 {
     RMtx4* m = NULL;
     rmReal left, right, bottom, top, znear, zfar;
+    bool ndc_homogeneous;
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     left   = NUM2DBL(l);
@@ -3322,39 +3330,44 @@ RMtx4_perspectiveOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VA
     top    = NUM2DBL(t);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
-    RMtx4PerspectiveOffCenterRH( m, left, right, bottom, top, znear, zfar );
+    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+
+    RMtx4PerspectiveOffCenterRH( m, left, right, bottom, top, znear, zfar, ndc_homogeneous );
 
     return self;
 }
 
 /*
- * call-seq: orthoRH(width,height,znear,zfar) -> self
+ * call-seq: orthoRH(width,height,znear,zfar,ndc_homogeneous) -> self
  *
  * Builds a orthogonal projection matrix for a right-handed coordinate system from:
  * * View volume width (+width+)
  * * View volume height (+height+)
  * * Near clip plane distance (+znear+)
  * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_orthoRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf )
+RMtx4_orthoRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf, VALUE ndch )
 {
     RMtx4* m = NULL;
     rmReal width, height, znear, zfar;
+    bool ndc_homogeneous;
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     width  = NUM2DBL(w);
     height = NUM2DBL(h);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
+    ndc_homogeneous = (ndch == Qtrue) ? true : false;
 
-    RMtx4OrthoRH( m, width, height, znear, zfar );
+    RMtx4OrthoRH( m, width, height, znear, zfar, ndc_homogeneous );
 
     return self;
 }
 
 /*
- * call-seq: orthoOffCenterRH(left,right,bottom,top,znear,zfar) -> self
+ * call-seq: orthoOffCenterRH(left,right,bottom,top,znear,zfar,ndc_homogeneous) -> self
  *
  * Builds a orthogonal projection matrix for a right-handed coordinate system from:
  * * Minimum value of the view volume width (+left+)
@@ -3363,12 +3376,14 @@ RMtx4_orthoRH( VALUE self, VALUE w, VALUE h, VALUE zn, VALUE zf )
  * * Maximum value of the view volume height (+top+)
  * * Near clip plane distance (+znear+)
  * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
  */
 static VALUE
-RMtx4_orthoOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn, VALUE zf )
+RMtx4_orthoOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn, VALUE zf, VALUE ndch )
 {
     RMtx4* m = NULL;
     rmReal left, right, bottom, top, znear, zfar;
+    bool ndc_homogeneous;
 
     TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
     left   = NUM2DBL(l);
@@ -3377,7 +3392,9 @@ RMtx4_orthoOffCenterRH( VALUE self, VALUE l, VALUE r, VALUE b, VALUE t, VALUE zn
     top    = NUM2DBL(t);
     znear  = NUM2DBL(zn);
     zfar   = NUM2DBL(zf);
-    RMtx4OrthoOffCenterRH( m, left, right, bottom, top, znear, zfar );
+    ndc_homogeneous = (ndch == Qtrue) ? true : false;
+
+    RMtx4OrthoOffCenterRH( m, left, right, bottom, top, znear, zfar, ndc_homogeneous );
 
     return self;
 }
@@ -7324,11 +7341,11 @@ Init_rmath3d()
     rb_define_method( rb_cRMtx4, "scaling", RMtx4_scaling, 3 );
 
     rb_define_method( rb_cRMtx4, "lookAtRH", RMtx4_lookAtRH, 3 );
-    rb_define_method( rb_cRMtx4, "perspectiveRH", RMtx4_perspectiveRH, 4 );
-    rb_define_method( rb_cRMtx4, "perspectiveFovRH", RMtx4_perspectiveFovRH, 4 );
-    rb_define_method( rb_cRMtx4, "perspectiveOffCenterRH", RMtx4_perspectiveOffCenterRH, 6 );
-    rb_define_method( rb_cRMtx4, "orthoRH", RMtx4_orthoRH, 4 );
-    rb_define_method( rb_cRMtx4, "orthoOffCenterRH", RMtx4_orthoOffCenterRH, 6 );
+    rb_define_method( rb_cRMtx4, "perspectiveRH", RMtx4_perspectiveRH, 5 );
+    rb_define_method( rb_cRMtx4, "perspectiveFovRH", RMtx4_perspectiveFovRH, 5 );
+    rb_define_method( rb_cRMtx4, "perspectiveOffCenterRH", RMtx4_perspectiveOffCenterRH, 7 );
+    rb_define_method( rb_cRMtx4, "orthoRH", RMtx4_orthoRH, 5 );
+    rb_define_method( rb_cRMtx4, "orthoOffCenterRH", RMtx4_orthoOffCenterRH, 7 );
 
     rb_define_method( rb_cRMtx4, "+@", RMtx4_op_unary_plus, 0 );
     rb_define_method( rb_cRMtx4, "-@", RMtx4_op_unary_minus, 0 );

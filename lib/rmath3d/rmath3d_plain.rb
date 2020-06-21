@@ -29,7 +29,7 @@ module RMath3D
                0.0, 0.0 ]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0],
                  a[0], a[0] ]
         when RMtx2
@@ -46,7 +46,7 @@ module RMath3D
           for col in 0...2 do
             index = 2*row + col
             case a[index]
-            when Float, Integer, Fixnum, Bignum
+            when Float, Integer
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx2#initialize : Unknown type #{a[0].class}."
@@ -88,7 +88,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RMtx2#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -411,7 +411,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RMtx2.new( arg*self.e00, arg*self.e01,
                           arg*self.e10, arg*self.e11 )
 
@@ -503,7 +503,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e10 = other*self.e10
@@ -560,7 +560,7 @@ module RMath3D
                0.0, 0.0, 0.0 ]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0], a[0],
                  a[0], a[0], a[0],
                  a[0], a[0], a[0] ]
@@ -579,7 +579,7 @@ module RMath3D
           for col in 0...3 do
             index = 3*row + col
             case a[index]
-            when Float, Integer, Fixnum, Bignum
+            when Float, Integer
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx3#initialize : Unknown type #{a[0].class}."
@@ -622,7 +622,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RMtx3#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -1098,7 +1098,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RMtx3.new( arg*self.e00, arg*self.e01, arg*self.e02,
                           arg*self.e10, arg*self.e11, arg*self.e12,
                           arg*self.e20, arg*self.e21, arg*self.e22 )
@@ -1191,7 +1191,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e02 = other*self.e02
@@ -1259,7 +1259,7 @@ module RMath3D
                0.0, 0.0, 0.0, 0.0 ]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0], a[0], a[0],
                  a[0], a[0], a[0], a[0],
                  a[0], a[0], a[0], a[0],
@@ -1280,7 +1280,7 @@ module RMath3D
           for col in 0...4 do
             index = 4*row + col
             case a[index]
-            when Float, Integer, Fixnum, Bignum
+            when Float, Integer
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx4#initialize : Unknown type #{a[0].class}."
@@ -1324,7 +1324,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RMtx4#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -1838,6 +1838,39 @@ module RMath3D
     end
 
     #
+    # call-seq: lookAtLH(eye,at,up) -> self
+    #
+    # Builds a viewing matrix for a left-handed coordinate system from:
+    # * eye position (+eye+: RVec3)
+    # * a point looking at (+at+: RVec3)
+    # * up vector (+up+: RVec3)
+    #
+    def lookAtLH( eye, at, up )
+      setIdentity()
+
+      axis_z = (at - eye).normalize!
+      axis_x = RVec3.cross( up, axis_z ).normalize!
+      axis_y = RVec3.cross( axis_z, axis_x )
+
+      self.e00 = axis_x[0]
+      self.e01 = axis_x[1]
+      self.e02 = axis_x[2]
+      self.e03 = -RVec3.dot( axis_x, eye )
+
+      self.e10 = axis_y[0]
+      self.e11 = axis_y[1]
+      self.e12 = axis_y[2]
+      self.e13 = -RVec3.dot( axis_y, eye )
+
+      self.e20 = axis_z[0]
+      self.e21 = axis_z[1]
+      self.e22 = axis_z[2]
+      self.e23 = -RVec3.dot( axis_z, eye )
+
+      return self
+    end
+
+    #
     # call-seq: lookAtRH(eye,at,up) -> self
     #
     # Builds a viewing matrix for a right-handed coordinate system from:
@@ -1871,37 +1904,42 @@ module RMath3D
     end
 
     #
-    # call-seq: perspectiveRH(width,height,znear,zfar) -> self
+    # call-seq: perspectiveRH(width,height,znear,zfar,ndc_convention) -> self
     #
     # Builds a perspective projection matrix for a right-handed coordinate system from:
     # * View volume width (+width+)
     # * View volume height (+height+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveRH( width, height, znear, zfar )
-      perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar )
+    def perspectiveRH( width, height, znear, zfar, ndc_homogeneous )
+      perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
       return self
     end
 
     #
-    # call-seq: perspectiveFovRH(fovy,aspect,znear,zfar) -> self
+    # call-seq: perspectiveFovRH(fovy,aspect,znear,zfar,ndc_homogeneous) -> self
     #
     # Builds a perspective projection matrix for a right-handed coordinate system from:
     # * Field of view in y direction (+fovy+ radian)
     # * Aspect ratio (+aspect+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveFovRH( fovy_radian, aspect, znear, zfar )
+    def perspectiveFovRH( fovy_radian, aspect, znear, zfar, ndc_homogeneous )
       f = Math::tan( fovy_radian / 2.0 )
       f = 1.0 / f
+
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / (zfar-znear)
+      d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
       setIdentity()
       setElement( 0, 0, f / aspect )
       setElement( 1, 1, f )
-      setElement( 2, 2, (zfar+znear)/(znear-zfar) )
-      setElement( 2, 3, 2*zfar*znear/(znear-zfar) )
+      setElement( 2, 2, c )
+      setElement( 2, 3, d )
       setElement( 3, 2, -1.0 )
       setElement( 3, 3, 0.0 )
 
@@ -1918,12 +1956,13 @@ module RMath3D
     # * Maximum value of the view volume height (+top+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveOffCenterRH( left, right, bottom, top, znear, zfar )
+    def perspectiveOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous )
       a = (right+left) / (right-left)
       b = (top+bottom) / (top-bottom)
-      c = -(zfar+znear) / (zfar-znear)
-      d = -(2*znear*zfar) / (zfar-znear)
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / (zfar-znear)
+      d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
       setIdentity()
 
@@ -1947,9 +1986,10 @@ module RMath3D
     # * View volume height (+height+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def orthoRH( width, height, znear, zfar )
-      orthoOffCenterRH( -width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar )
+    def orthoRH( width, height, znear, zfar, ndc_homogeneous )
+      orthoOffCenterRH( -width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
       return self
     end
 
@@ -1963,11 +2003,12 @@ module RMath3D
     # * Maximum value of the view volume height (+top+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def orthoOffCenterRH( left, right, bottom, top, znear, zfar )
-      tx = (right+left) / (right-left)
-      ty = (top+bottom) / (top-bottom)
-      tz = (zfar+znear) / (zfar-znear)
+    def orthoOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous )
+      tx = -(right+left) / (right-left)
+      ty = -(top+bottom) / (top-bottom)
+      tz = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -znear / (zfar-znear)
 
       setIdentity()
 
@@ -1975,7 +2016,7 @@ module RMath3D
       setElement( 0, 3, tx )
       setElement( 1, 1, 2.0/(top-bottom) )
       setElement( 1, 3, ty )
-      setElement( 2, 2, -2.0/(zfar-znear) )
+      setElement( 2, 2, -(ndc_homogeneous ? 2.0 : 1.0)/(zfar-znear) )
       setElement( 2, 3, tz )
 
       return self
@@ -2048,7 +2089,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RMtx4.new( arg*self.e00, arg*self.e01, arg*self.e02, arg*self.e03,
                           arg*self.e10, arg*self.e11, arg*self.e12, arg*self.e13,
                           arg*self.e20, arg*self.e21, arg*self.e22, arg*self.e23,
@@ -2142,7 +2183,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e02 = other*self.e02
@@ -2224,7 +2265,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0], a[0], a[0] ]
         when RQuat
           @e = [ a[0].x, a[0].y, a[0].z, a[0].w ]
@@ -2235,7 +2276,7 @@ module RMath3D
       when 4
         a.each_with_index do |elem, index|
           case elem
-          when Float, Integer, Fixnum, Bignum
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RQuat#initialize : Unknown type #{elem.class}."
@@ -2274,7 +2315,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RQuat#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -2613,7 +2654,7 @@ module RMath3D
         z = q1w*q2z + q1x*q2y - q1y*q2x + q1z*q2w
         w = q1w*q2w - q1x*q2x - q1y*q2y - q1z*q2z
         return RQuat.new( x, y, z, w )
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RQuat.new( @e[0]*arg, @e[1]*arg, @e[2]*arg, @e[3]*arg )
       else
         raise TypeError, "RQuat#* : Unknown type #{arg}."
@@ -2708,7 +2749,7 @@ module RMath3D
 
         return self
 
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         self.x *= other
         self.y *= other
         self.z *= other
@@ -2824,7 +2865,7 @@ module RMath3D
         @e = [0.0, 0.0]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0] ]
         when RVec2
           @e = [ a[0].x, a[0].y ]
@@ -2835,7 +2876,7 @@ module RMath3D
       when 2
         a.each_with_index do |elem, index|
           case elem
-          when Float, Integer, Fixnum, Bignum
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RVec2#initialize : Unknown type #{elem.class}."
@@ -2874,7 +2915,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RVec2#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -3063,7 +3104,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RVec2.new( @e[0]*arg, @e[1]*arg )
       else
         raise TypeError, "RVec2#* : Unknown type #{arg}."
@@ -3129,7 +3170,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( arg )
-      if !(arg.class == Float || arg.class == Integer || arg.class == Fixnum || arg.class == Bignum)
+      if !(arg.class == Float || arg.class == Integer)
         raise TypeError, "RVec2#mul! : Unknown type #{arg.class}."
         return nil
       end
@@ -3163,7 +3204,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0], a[0] ]
         when RVec3
           @e = [ a[0].x, a[0].y, a[0].z ]
@@ -3174,7 +3215,7 @@ module RMath3D
       when 3
         a.each_with_index do |elem, index|
           case elem
-          when Float, Integer, Fixnum, Bignum
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RVec3#initialize : Unknown type #{elem.class}."
@@ -3213,7 +3254,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RVec3#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -3517,9 +3558,9 @@ module RMath3D
       t_z = q.w*self[2] + q.x*self[1] - q.y*self[0]
       t_w =             - q.x*self[0] - q.y*self[1] - q.z*self[2]
 
-      result.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y;
-      result.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x;
-      result.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w;
+      result.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y
+      result.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x
+      result.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w
 
       return result
     end
@@ -3533,9 +3574,9 @@ module RMath3D
       t_z = q.w*self[2] + q.x*self[1] - q.y*self[0]
       t_w =             - q.x*self[0] - q.y*self[1] - q.z*self[2]
 
-      self.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y;
-      self.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x;
-      self.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w;
+      self.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y
+      self.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x
+      self.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w
 
       return self
     end
@@ -3616,7 +3657,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RVec3.new( @e[0]*arg, @e[1]*arg, @e[2]*arg )
       else
         raise TypeError, "RVec3#* : Unknown type #{arg}."
@@ -3685,7 +3726,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( arg )
-      if !(arg.class == Float || arg.class == Integer || arg.class == Fixnum || arg.class == Bignum)
+      if !(arg.class == Float || arg.class == Integer)
         raise TypeError, "RVec3#mul! : Unknown type #{arg.class}."
         return nil
       end
@@ -3720,7 +3761,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Float, Integer, Fixnum, Bignum
+        when Float, Integer
           @e = [ a[0], a[0], a[0], a[0] ]
         when RVec3
           @e = [ a[0].x, a[0].y, a[0].z, 0.0 ]
@@ -3733,7 +3774,7 @@ module RMath3D
       when 4
         a.each_with_index do |elem, index|
           case elem
-          when Float, Integer, Fixnum, Bignum
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RVec4#initialize : Unknown type #{elem.class}."
@@ -3772,7 +3813,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RVec4#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -4062,7 +4103,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Float, Integer, Fixnum, Bignum
+      when Float, Integer
         return RVec4.new( @e[0]*arg, @e[1]*arg, @e[2]*arg, @e[3]*arg )
       else
         raise TypeError, "RVec4#* : Unknown type #{arg}."
@@ -4134,7 +4175,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( other )
-      if !(other.class == Float || other.class == Integer || other.class == Fixnum || other.class == Bignum)
+      if !(other.class == Float || other.class == Integer)
         raise TypeError, "RVec4#mul! : Unknown type #{other.class}."
         return nil
       end

@@ -1,3 +1,11 @@
+2020-06-21  vaiorabbit  <http://twitter.com/vaiorabbit>
+
+	* rmath3d.c, rmath3d_plain.rb (RMtx4): Added argument 'ndc_homogeneous' for projection matrix APIs.
+	Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal)
+	https://www.slideshare.net/Mark_Kilgard/opengl-32-and-more/26-Direct3D_vs_OpenGL_Coordinate_System
+	https://metashapes.com/blog/opengl-metal-projection-matrix-problem/
+	* rmath3d_plain.rb: Removed Fixnum and Bignum symbols (deprecated and unified into Integer class since Ruby 2.4)
+
 2017-07-22  vaiorabbit  <http://twitter.com/vaiorabbit>
 
 	* Added 'Integer' type for argument type branching (constant ::Fixnum is deprecated since ruby 2.4).

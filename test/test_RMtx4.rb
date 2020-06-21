@@ -526,7 +526,7 @@ class TC_RMtx4 < Minitest::Test
                     0.0,         2*z_n/height, 0.0,                  0.0,
                     0.0,         0.0,         -(z_f+z_n)/(z_f-z_n), -2.0*z_f*z_n / (z_f-z_n),
                     0.0,         0.0,         -1.0,                  0.0 )
-    m1 = RMtx4.new.perspectiveRH( width, height, z_n, z_f )
+    m1 = RMtx4.new.perspectiveRH( width, height, z_n, z_f, true )
 
     for r in 0...4 do
       for c in 0...4 do
@@ -544,7 +544,7 @@ class TC_RMtx4 < Minitest::Test
                     0.0,      f,    0.0,                 0.0,
                     0.0,      0.0,  (z_f+z_n)/(z_n-z_f), 2*z_f*z_n/(z_n-z_f),
                     0.0,      0.0, -1.0,                 0.0 )
-    m3 = RMtx4.new.perspectiveFovRH( fovy, aspect, z_n, z_f );
+    m3 = RMtx4.new.perspectiveFovRH( fovy, aspect, z_n, z_f, true );
 
     for r in 0...4 do
       for c in 0...4 do
@@ -563,7 +563,7 @@ class TC_RMtx4 < Minitest::Test
                     0.0,                0.0,                c,   d,
                     0.0,                0.0,               -1.0, 0.0 )
 
-    m5 = RMtx4.new.perspectiveOffCenterRH( left, right, bottom, top, z_n, z_f )
+    m5 = RMtx4.new.perspectiveOffCenterRH( left, right, bottom, top, z_n, z_f, true )
 
     for r in 0...4 do
       for c in 0...4 do
@@ -584,14 +584,14 @@ class TC_RMtx4 < Minitest::Test
     height = top - bottom
 
     # RMtx4#orthoRH
-    tx = (right+left)/width
-    ty = (top+bottom)/height
-    tz = (z_f+z_n)/(z_f-z_n)
+    tx = -(right+left)/width
+    ty = -(top+bottom)/height
+    tz = -(z_f+z_n)/(z_f-z_n)
     m0 = RMtx4.new( 2.0/width, 0.0,         0.0,           tx,
                     0.0,       2.0/height,  0.0,           ty,
                     0.0,       0.0,        -2.0/(z_f-z_n), tz,
                     0.0,       0.0,         0.0,           1.0 )
-    m1 = RMtx4.new.orthoRH( width, height, z_n, z_f )
+    m1 = RMtx4.new.orthoRH( width, height, z_n, z_f, true )
 
     for r in 0...4 do
       for c in 0...4 do
@@ -600,14 +600,14 @@ class TC_RMtx4 < Minitest::Test
     end
 
     # RMtx4#orthoOffCenterRH
-    tx = (right+left)/(right-left)
-    ty = (top+bottom)/(top-bottom)
-    tz = (z_f+z_n)/(z_f-z_n)
+    tx = -(right+left)/(right-left)
+    ty = -(top+bottom)/(top-bottom)
+    tz = -(z_f+z_n)/(z_f-z_n)
     m2 = RMtx4.new( 2.0/(right-left), 0.0,               0.0,           tx,
                     0.0,              2.0/(top-bottom),  0.0,           ty,
                     0.0,              0.0,              -2.0/(z_f-z_n), tz,
                     0.0,              0.0,               0.0,           1.0 )
-    m3 = RMtx4.new.orthoOffCenterRH( left, right, bottom, top, z_n, z_f )
+    m3 = RMtx4.new.orthoOffCenterRH( left, right, bottom, top, z_n, z_f, true )
 
     for r in 0...4 do
       for c in 0...4 do
