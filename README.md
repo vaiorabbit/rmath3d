@@ -4,7 +4,7 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-*   Last Update: Jun 21, 2020
+*   Last Update: Jul 23, 2020
 *   Since: Jul 20, 2008
 
 * rmath3d (C Extension Library Implementation) [![Gem Version](https://badge.fury.io/rb/rmath3d.svg)](https://badge.fury.io/rb/rmath3d) [![Gem](https://img.shields.io/gem/dt/rmath3d.svg)](https://rubygems.org/gems/rmath3d)
@@ -33,14 +33,8 @@ rmath3d is a math module for 3D game programming and computer graphics.
 Notice: This library provides native extension. You must setup develop environment (or DevKit) before installation.
 
 *   Ruby
-    *   ruby 2.0.0p247 (2013-06-27 revision 41674) [x86_64-darwin12.4.0]
-    *   ruby 2.0.0p247 (2013-06-27) [i386-mingw32] With Development Kit installed.
-        *   I used: DevKit-mingw64-32-4.7.2-20130224-1151-sfx.exe
-        *   Unpack the archive -> "> ruby dk.rb init" -> edit config.yml (just add your ruby foldier) -> "> ruby dk.rb install" 
-        *   Ref.: http://blog.mattwynne.net/2010/10/12/installing-ruby-gems-with-native-extensions-on-windows/
-    *   ruby 2.2.2p95 (2015-04-13 revision 50295) [x86_64-darwin14]
-    *   Ruby 1.9.3 and prior versions are no longer supported.
-        *   Ref.: https://www.ruby-lang.org/en/news/2015/02/23/support-for-ruby-1-9-3-has-ended/
+    *   ruby 2.7.1p83 (2020-03-31 revision a0c7c23c9c) [x64-mingw32]
+    *   Ruby 2.3 and prior versions are no longer supported.
 
 ## Building rmath3d.{so|bundle} ##
 

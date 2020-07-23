@@ -440,6 +440,104 @@ RMtx4Scale( RMtx4* out, const RMtx4* m, rmReal f )
    http://msdn.microsoft.com/en-us/library/bb205343.aspx
 */
 void
+RMtx4LookAtLH( RMtx4* out, const RVec3* eye, const RVec3* at, const RVec3* up )
+{
+#define AX(i) RVec3GetElement( &axis_x, i )
+#define AY(i) RVec3GetElement( &axis_y, i )
+#define AZ(i) RVec3GetElement( &axis_z, i )
+
+    RVec3 axis_x, axis_y, axis_z;
+
+    RMtx4Identity( out );
+
+    RVec3Sub( &axis_z, at, eye );
+    RVec3Normalize( &axis_z, &axis_z );
+
+    RVec3Cross( &axis_x, up, &axis_z );
+    RVec3Normalize( &axis_x, &axis_x );
+
+    RVec3Cross( &axis_y, &axis_z, &axis_x );
+
+    SET_ELEMENT( out, 0, 0,  AX(0) );
+    SET_ELEMENT( out, 0, 1,  AX(1) );
+    SET_ELEMENT( out, 0, 2,  AX(2) );
+    SET_ELEMENT( out, 0, 3,  -RVec3Dot(&axis_x, eye) );
+
+    SET_ELEMENT( out, 1, 0,  AY(0) );
+    SET_ELEMENT( out, 1, 1,  AY(1) );
+    SET_ELEMENT( out, 1, 2,  AY(2) );
+    SET_ELEMENT( out, 1, 3,  -RVec3Dot(&axis_y, eye) );
+
+    SET_ELEMENT( out, 2, 0,  AZ(0) );
+    SET_ELEMENT( out, 2, 1,  AZ(1) );
+    SET_ELEMENT( out, 2, 2,  AZ(2) );
+    SET_ELEMENT( out, 2, 3,  -RVec3Dot(&axis_z, eye) );
+
+#undef AX
+#undef AY
+#undef AZ
+}
+
+void
+RMtx4PerspectiveLH( RMtx4* out, rmReal width, rmReal height, rmReal znear, rmReal zfar, bool ndc_homogeneous )
+{
+    RMtx4PerspectiveOffCenterLH( out, -width/2.0f, width/2.0f, -height/2.0f, height/2.0f, znear, zfar, ndc_homogeneous );
+}
+
+void
+RMtx4PerspectiveFovLH( RMtx4* out, rmReal fovy_radian, rmReal aspect, rmReal znear, rmReal zfar, bool ndc_homogeneous )
+{
+    rmReal top = rmTan(fovy_radian / 2.0f) * znear;
+    rmReal bottom = -top;
+    rmReal right = top * aspect;
+    rmReal left = -right;
+    RMtx4PerspectiveOffCenterLH(out, left, right, bottom, top, znear, zfar, ndc_homogeneous);
+}
+
+void
+RMtx4PerspectiveOffCenterLH( RMtx4* out, rmReal left, rmReal right, rmReal bottom, rmReal top, rmReal znear, rmReal zfar, bool ndc_homogeneous )
+{
+    rmReal A = (right+left) / (right-left);
+    rmReal B = (top+bottom) / (top-bottom);
+    rmReal C = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear);
+    rmReal D = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear);
+
+    RMtx4Zero( out );
+    SET_ELEMENT( out, 0, 0, 2*znear/(right-left) );
+    SET_ELEMENT( out, 0, 2, -A );
+    SET_ELEMENT( out, 1, 1, 2*znear/(top-bottom) );
+    SET_ELEMENT( out, 1, 2, -B );
+    SET_ELEMENT( out, 2, 2, C );
+    SET_ELEMENT( out, 2, 3, -D );
+    SET_ELEMENT( out, 3, 2, 1.0f );
+}
+
+void
+RMtx4OrthoLH( RMtx4* out, rmReal width, rmReal height, rmReal znear, rmReal zfar, bool ndc_homogeneous )
+{
+    RMtx4OrthoOffCenterLH( out, -width/2.0f, width/2.0f, -height/2.0f, height/2.0f, znear, zfar, ndc_homogeneous );
+}
+
+void
+RMtx4OrthoOffCenterLH( RMtx4* out, rmReal left, rmReal right, rmReal bottom, rmReal top, rmReal znear, rmReal zfar, bool ndc_homogeneous )
+{
+    rmReal tx = -(right+left) / (right-left);
+    rmReal ty = -(top+bottom) / (top-bottom);
+    rmReal tz = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -znear / (zfar-znear);
+
+    RMtx4Identity( out );
+    SET_ELEMENT( out, 0, 0, 2.0f/(right-left) );
+    SET_ELEMENT( out, 0, 3, tx );
+    SET_ELEMENT( out, 1, 1, 2.0f/(top-bottom) );
+    SET_ELEMENT( out, 1, 3, ty );
+    SET_ELEMENT( out, 2, 2, (ndc_homogeneous ? 2.0f : 1.0f)/(zfar-znear) );
+    SET_ELEMENT( out, 2, 3, tz );
+}
+
+/* http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/glu/lookat.html
+   http://msdn.microsoft.com/en-us/library/bb205343.aspx
+*/
+void
 RMtx4LookAtRH( RMtx4* out, const RVec3* eye, const RVec3* at, const RVec3* up )
 {
 #define AX(i) RVec3GetElement( &axis_x, i )
@@ -484,25 +582,16 @@ RMtx4PerspectiveRH( RMtx4* out, rmReal width, rmReal height, rmReal znear, rmRea
     RMtx4PerspectiveOffCenterRH( out, -width/2.0f, width/2.0f, -height/2.0f, height/2.0f, znear, zfar, ndc_homogeneous );
 }
 
-/* https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
-   Game Programming in C++ (2018) https://www.oreilly.com/library/view/game-programming-in/9780134598185/
+/* https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
  */
 void
 RMtx4PerspectiveFovRH( RMtx4* out, rmReal fovy_radian, rmReal aspect, rmReal znear, rmReal zfar, bool ndc_homogeneous )
 {
-    rmReal f = rmTan( fovy_radian / 2.0f );
-    f = 1.0f / f;
-
-    rmReal C = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : zfar / -(zfar-znear);
-    rmReal D = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear);
-
-    RMtx4Identity( out );
-    SET_ELEMENT( out, 0, 0, f / aspect );
-    SET_ELEMENT( out, 1, 1, f );
-    SET_ELEMENT( out, 2, 2, C );
-    SET_ELEMENT( out, 2, 3, D );
-    SET_ELEMENT( out, 3, 2, -1.0f );
-    SET_ELEMENT( out, 3, 3, 0.0f );
+    rmReal top = rmTan(fovy_radian / 2.0f) * znear;
+    rmReal bottom = -top;
+    rmReal right = top * aspect;
+    rmReal left = -right;
+    RMtx4PerspectiveOffCenterRH(out, left, right, bottom, top, znear, zfar, ndc_homogeneous);
 }
 
 /* https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml

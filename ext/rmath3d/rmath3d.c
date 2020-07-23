@@ -3222,6 +3222,224 @@ RMtx4_scaling( VALUE self, VALUE x, VALUE y, VALUE z )
 }
 
 /*
+ * call-seq: lookAtLH(eye,at,up) -> self
+ *
+ * Builds a viewing matrix for a left-handed coordinate system from:
+ * * eye position (+eye+: RVec3)
+ * * a point looking at (+at+: RVec3)
+ * * up vector (+up+: RVec3)
+ */
+static VALUE
+RMtx4_lookAtLH( VALUE self, VALUE e, VALUE a, VALUE u )
+{
+    RMtx4*  m   = NULL;
+    RVec3*  eye = NULL;
+    RVec3*  at  = NULL;
+    RVec3*  up  = NULL;
+
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    TypedData_Get_Struct( e, RVec3, &RVec3_type, eye );
+    TypedData_Get_Struct( a, RVec3, &RVec3_type, at );
+    TypedData_Get_Struct( u, RVec3, &RVec3_type, up );
+    RMtx4LookAtLH( m, eye, at, up );
+
+    return self;
+}
+
+/*
+ * call-seq: perspectiveLH(width,height,znear,zfar,ndc_homogeneous) -> self
+ *
+ * Builds a perspective projection matrix for a right-handed coordinate system from:
+ * * View volume width (+width+)
+ * * View volume height (+height+)
+ * * Near clip plane distance (+znear+)
+ * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+ */
+static VALUE
+RMtx4_perspectiveLH( int argc, VALUE* argv, VALUE self )
+{
+    VALUE w, h, zn, zf, ndch;
+    RMtx4* m = NULL;
+    rmReal width, height, znear, zfar;
+    bool ndc_homogeneous;
+
+    if (argc < 4 || argc > 5)
+    {
+        rb_raise(rb_eArgError, "RMtx4_perspectiveLH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "41", &w, &h, &zn, &zf, &ndch);
+
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    width  = NUM2DBL(w);
+    height = NUM2DBL(h);
+    znear  = NUM2DBL(zn);
+    zfar   = NUM2DBL(zf);
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
+
+    RMtx4PerspectiveLH( m, width, height, znear, zfar, ndc_homogeneous );
+
+    return self;
+}
+
+/*
+ * call-seq: perspectiveFovLH(fovy,aspect,znear,zfar,ndc_homogeneous) -> self
+ *
+ * Builds a perspective projection matrix for a right-handed coordinate system from:
+ * * Field of view in y direction (+fovy+ radian)
+ * * Aspect ratio (+aspect+)
+ * * Near clip plane distance (+znear+)
+ * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+ */
+static VALUE
+RMtx4_perspectiveFovLH( int argc, VALUE* argv, VALUE self )
+{
+    VALUE fovy, asp, zn, zf, ndch;
+    RMtx4* m = NULL;
+    rmReal fovy_radian, aspect, znear, zfar;
+    bool ndc_homogeneous;
+
+    if (argc < 4 || argc > 5)
+    {
+        rb_raise(rb_eArgError, "RMtx4_perspectiveFovLH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "41", &fovy, &asp, &zn, &zf, &ndch);
+
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    fovy_radian = NUM2DBL(fovy);
+    aspect      = NUM2DBL(asp);
+    znear       = NUM2DBL(zn);
+    zfar        = NUM2DBL(zf);
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
+
+    RMtx4PerspectiveFovLH( m, fovy_radian, aspect, znear, zfar, ndc_homogeneous );
+
+    return self;
+}
+
+/*
+ * call-seq: perspectiveOffCenterLH(left,right,bottom,top,znear,zfar,ndc_homogeneous) -> self
+ *
+ * Builds a perspective projection matrix for a right-handed coordinate system from:
+ * * Minimum value of the view volume width (+left+)
+ * * Maximum value of the view volume width (+right+)
+ * * Minimum value of the view volume height (+bottom+)
+ * * Maximum value of the view volume height (+top+)
+ * * Near clip plane distance (+znear+)
+ * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+ */
+static VALUE
+RMtx4_perspectiveOffCenterLH( int argc, VALUE* argv, VALUE self )
+{
+    VALUE l, r, b, t, zn, zf, ndch;
+    RMtx4* m = NULL;
+    rmReal left, right, bottom, top, znear, zfar;
+    bool ndc_homogeneous;
+
+    if (argc < 6 || argc > 7)
+    {
+        rb_raise(rb_eArgError, "RMtx4_perspectiveOffCenterLH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "61", &l, &r, &b, &t, &zn, &zf, &ndch);
+
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    left   = NUM2DBL(l);
+    right  = NUM2DBL(r);
+    bottom = NUM2DBL(b);
+    top    = NUM2DBL(t);
+    znear  = NUM2DBL(zn);
+    zfar   = NUM2DBL(zf);
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
+
+    RMtx4PerspectiveOffCenterLH( m, left, right, bottom, top, znear, zfar, ndc_homogeneous );
+
+    return self;
+}
+
+/*
+ * call-seq: orthoLH(width,height,znear,zfar,ndc_homogeneous) -> self
+ *
+ * Builds a orthogonal projection matrix for a right-handed coordinate system from:
+ * * View volume width (+width+)
+ * * View volume height (+height+)
+ * * Near clip plane distance (+znear+)
+ * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+ */
+static VALUE
+RMtx4_orthoLH( int argc, VALUE* argv, VALUE self )
+{
+    VALUE w, h, zn, zf, ndch;
+    RMtx4* m = NULL;
+    rmReal width, height, znear, zfar;
+    bool ndc_homogeneous;
+
+    if (argc < 4 || argc > 5)
+    {
+        rb_raise(rb_eArgError, "RMtx4_orthoLH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "41", &w, &h, &zn, &zf, &ndch);
+
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    width  = NUM2DBL(w);
+    height = NUM2DBL(h);
+    znear  = NUM2DBL(zn);
+    zfar   = NUM2DBL(zf);
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
+
+    RMtx4OrthoLH( m, width, height, znear, zfar, ndc_homogeneous );
+
+    return self;
+}
+
+/*
+ * call-seq: orthoOffCenterLH(left,right,bottom,top,znear,zfar,ndc_homogeneous) -> self
+ *
+ * Builds a orthogonal projection matrix for a right-handed coordinate system from:
+ * * Minimum value of the view volume width (+left+)
+ * * Maximum value of the view volume width (+right+)
+ * * Minimum value of the view volume height (+bottom+)
+ * * Maximum value of the view volume height (+top+)
+ * * Near clip plane distance (+znear+)
+ * * Far clip plane distance (+zfar+)
+ * * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+ */
+static VALUE
+RMtx4_orthoOffCenterLH( int argc, VALUE* argv, VALUE self )
+{
+    VALUE l, r, b, t, zn, zf, ndch;
+    RMtx4* m = NULL;
+    rmReal left, right, bottom, top, znear, zfar;
+    bool ndc_homogeneous;
+
+    if (argc < 6 || argc > 7)
+    {
+        rb_raise(rb_eArgError, "RMtx4_orthoOffCenterLH : wrong # of arguments (%d)", argc );
+    }
+
+    rb_scan_args(argc, argv, "61", &l, &r, &b, &t, &zn, &zf, &ndch);
+
+    TypedData_Get_Struct( self, RMtx4, &RMtx4_type, m );
+    left   = NUM2DBL(l);
+    right  = NUM2DBL(r);
+    bottom = NUM2DBL(b);
+    top    = NUM2DBL(t);
+    znear  = NUM2DBL(zn);
+    zfar   = NUM2DBL(zf);
+    ndc_homogeneous = NIL_P(ndch) ? true : ((ndch == Qtrue) ? true : false);
+
+    RMtx4OrthoOffCenterLH( m, left, right, bottom, top, znear, zfar, ndc_homogeneous );
+
+    return self;
+}
+
+/*
  * call-seq: lookAtRH(eye,at,up) -> self
  *
  * Builds a viewing matrix for a right-handed coordinate system from:
@@ -7379,6 +7597,13 @@ Init_rmath3d()
     rb_define_method( rb_cRMtx4, "rotationAxis", RMtx4_rotationAxis, 2 );
     rb_define_method( rb_cRMtx4, "rotationQuaternion", RMtx4_rotationQuaternion, 1 );
     rb_define_method( rb_cRMtx4, "scaling", RMtx4_scaling, 3 );
+
+    rb_define_method( rb_cRMtx4, "lookAtLH", RMtx4_lookAtLH, 3 );
+    rb_define_method( rb_cRMtx4, "perspectiveLH", RMtx4_perspectiveLH, -1 );
+    rb_define_method( rb_cRMtx4, "perspectiveFovLH", RMtx4_perspectiveFovLH, -1 );
+    rb_define_method( rb_cRMtx4, "perspectiveOffCenterLH", RMtx4_perspectiveOffCenterLH, -1 );
+    rb_define_method( rb_cRMtx4, "orthoLH", RMtx4_orthoLH, -1 );
+    rb_define_method( rb_cRMtx4, "orthoOffCenterLH", RMtx4_orthoOffCenterLH, -1 );
 
     rb_define_method( rb_cRMtx4, "lookAtRH", RMtx4_lookAtRH, 3 );
     rb_define_method( rb_cRMtx4, "perspectiveRH", RMtx4_perspectiveRH, -1 );

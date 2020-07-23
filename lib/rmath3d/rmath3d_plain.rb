@@ -1904,6 +1904,114 @@ module RMath3D
     end
 
     #
+    # call-seq: perspectiveLH(width,height,znear,zfar,ndc_convention) -> self
+    #
+    # Builds a perspective projection matrix for a right-handed coordinate system from:
+    # * View volume width (+width+)
+    # * View volume height (+height+)
+    # * Near clip plane distance (+znear+)
+    # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+    #
+    def perspectiveLH( width, height, znear, zfar, ndc_homogeneous = true)
+      return perspectiveOffCenterLH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
+    end
+
+    #
+    # call-seq: perspectiveFovLH(fovy,aspect,znear,zfar,ndc_homogeneous) -> self
+    #
+    # Builds a perspective projection matrix for a right-handed coordinate system from:
+    # * Field of view in y direction (+fovy+ radian)
+    # * Aspect ratio (+aspect+)
+    # * Near clip plane distance (+znear+)
+    # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+    #
+    def perspectiveFovLH( fovy_radian, aspect, znear, zfar, ndc_homogeneous = true)
+      # Ref.: https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
+      top = Math::tan(fovy_radian / 2.0) * znear
+      bottom = -top
+      right = top * aspect
+      left = -right
+      return perspectiveOffCenterLH(left, right, bottom, top, znear, zfar, ndc_homogeneous)
+    end
+
+    #
+    # call-seq: perspectiveOffCenterLH(left,right,bottom,top,znear,zfar) -> self
+    #
+    # Builds a perspective projection matrix for a right-handed coordinate system from:
+    # * Minimum value of the view volume width (+left+)
+    # * Maximum value of the view volume width (+right+)
+    # * Minimum value of the view volume height (+bottom+)
+    # * Maximum value of the view volume height (+top+)
+    # * Near clip plane distance (+znear+)
+    # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+    #
+    def perspectiveOffCenterLH( left, right, bottom, top, znear, zfar, ndc_homogeneous = true)
+      a = (right+left) / (right-left)
+      b = (top+bottom) / (top-bottom)
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
+      d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
+
+      setZero()
+
+      setElement( 0, 0, 2*znear/(right-left) )
+      setElement( 0, 2, -a )
+      setElement( 1, 1, 2*znear/(top-bottom) )
+      setElement( 1, 2, -b )
+      setElement( 2, 2, c )
+      setElement( 2, 3, -d )
+      setElement( 3, 2, 1.0 )
+
+      return self
+    end
+
+    #
+    # call-seq: orthoLH(width,height,znear,zfar) -> self
+    #
+    # Builds a orthogonal projection matrix for a right-handed coordinate system from:
+    # * View volume width (+width+)
+    # * View volume height (+height+)
+    # * Near clip plane distance (+znear+)
+    # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+    #
+    def orthoLH( width, height, znear, zfar, ndc_homogeneous = true)
+      orthoOffCenterLH( -width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
+      return self
+    end
+
+    #
+    # call-seq: orthoOffCenterLH(left,right,bottom,top,znear,zfar) -> self
+    #
+    # Builds a orthogonal projection matrix for a right-handed coordinate system from:
+    # * Minimum value of the view volume width (+left+)
+    # * Maximum value of the view volume width (+right+)
+    # * Minimum value of the view volume height (+bottom+)
+    # * Maximum value of the view volume height (+top+)
+    # * Near clip plane distance (+znear+)
+    # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
+    #
+    def orthoOffCenterLH( left, right, bottom, top, znear, zfar, ndc_homogeneous = true)
+      tx = -(right+left) / (right-left)
+      ty = -(top+bottom) / (top-bottom)
+      tz = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -znear / (zfar-znear)
+
+      setIdentity()
+
+      setElement( 0, 0, 2.0/(right-left) )
+      setElement( 0, 3, tx )
+      setElement( 1, 1, 2.0/(top-bottom) )
+      setElement( 1, 3, ty )
+      setElement( 2, 2, (ndc_homogeneous ? 2.0 : 1.0)/(zfar-znear) )
+      setElement( 2, 3, tz )
+
+      return self
+    end
+
+    #
     # call-seq: perspectiveRH(width,height,znear,zfar,ndc_convention) -> self
     #
     # Builds a perspective projection matrix for a right-handed coordinate system from:
@@ -1914,8 +2022,7 @@ module RMath3D
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
     def perspectiveRH( width, height, znear, zfar, ndc_homogeneous = true)
-      perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
-      return self
+      return perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
     end
 
     #
@@ -1929,21 +2036,12 @@ module RMath3D
     # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
     def perspectiveFovRH( fovy_radian, aspect, znear, zfar, ndc_homogeneous = true)
-      f = Math::tan( fovy_radian / 2.0 )
-      f = 1.0 / f
-
-      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
-      d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
-
-      setIdentity()
-      setElement( 0, 0, f / aspect )
-      setElement( 1, 1, f )
-      setElement( 2, 2, c )
-      setElement( 2, 3, d )
-      setElement( 3, 2, -1.0 )
-      setElement( 3, 3, 0.0 )
-
-      return self
+      # Ref.: https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
+      top = Math::tan(fovy_radian / 2.0) * znear
+      bottom = -top
+      right = top * aspect
+      left = -right
+      return perspectiveOffCenterRH(left, right, bottom, top, znear, zfar, ndc_homogeneous)
     end
 
     #
@@ -1964,7 +2062,7 @@ module RMath3D
       c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
       d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
-      setIdentity()
+      setZero()
 
       setElement( 0, 0, 2*znear/(right-left) )
       setElement( 0, 2, a )
@@ -1973,7 +2071,6 @@ module RMath3D
       setElement( 2, 2, c )
       setElement( 2, 3, d )
       setElement( 3, 2, -1.0 )
-      setElement( 3, 3,  0.0 )
 
       return self
     end

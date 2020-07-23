@@ -71,6 +71,13 @@ void    RMtx4Sub( RMtx4* out, const RMtx4* m1, const RMtx4* m2 );
 void    RMtx4Mul( RMtx4* out, const RMtx4* m1, const RMtx4* m2 );
 void    RMtx4Scale( RMtx4* out, const RMtx4* m, rmReal f );
 
+void    RMtx4LookAtLH( RMtx4* out, const struct RVec3* eye, const struct RVec3* at, const struct RVec3* up );
+void    RMtx4PerspectiveLH( RMtx4* out, rmReal width, rmReal height, rmReal znear, rmReal zfar, bool ndc_homogeneous );
+void    RMtx4PerspectiveFovLH( RMtx4* out, rmReal fovy_radian, rmReal aspect, rmReal znear, rmReal zfar, bool ndc_homogeneous );
+void    RMtx4PerspectiveOffCenterLH( RMtx4* out, rmReal left, rmReal right, rmReal bottom, rmReal top, rmReal znear, rmReal zfar, bool ndc_homogeneous );
+void    RMtx4OrthoLH( RMtx4* out, rmReal width, rmReal height, rmReal znear, rmReal zfar, bool ndc_homogeneous );
+void    RMtx4OrthoOffCenterLH( RMtx4* out, rmReal left, rmReal right, rmReal bottom, rmReal top, rmReal znear, rmReal zfar, bool ndc_homogeneous );
+
 void    RMtx4LookAtRH( RMtx4* out, const struct RVec3* eye, const struct RVec3* at, const struct RVec3* up );
 void    RMtx4PerspectiveRH( RMtx4* out, rmReal width, rmReal height, rmReal znear, rmReal zfar, bool ndc_homogeneous );
 void    RMtx4PerspectiveFovRH( RMtx4* out, rmReal fovy_radian, rmReal aspect, rmReal znear, rmReal zfar, bool ndc_homogeneous );

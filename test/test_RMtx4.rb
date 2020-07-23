@@ -485,6 +485,29 @@ class TC_RMtx4 < Minitest::Test
     end
   end
 
+  def test_lookAtLH
+    pEye = RVec3.new( 10, 10, 10 )
+    vDir = ( RVec3.new(0,0,0) - pEye ).normalize! # staring at (0,0,0)
+    vUp = RVec3.new( 0, 1, 0 )
+    vRight = RVec3.cross( vUp, vDir ).normalize!
+    vUp = RVec3.cross( vDir, vRight ).normalize!
+
+    m0 = RMtx4.new( vRight.x, vRight.y, vRight.z, -RVec3.dot(pEye,vRight),
+                    vUp.x,    vUp.y,    vUp.z,    -RVec3.dot(pEye,vUp),
+                    vDir.x,   vDir.y,   vDir.z,   -RVec3.dot(pEye,vDir),
+                    0.0,      0.0,      0.0,       1.0    )
+
+    m1 = RMtx4.new.lookAtLH( RVec3.new(10,10,10), # posistion
+                             RVec3.new(0,0,0),    # at
+                             RVec3.new(0,1,0) )   # up
+
+    for r in 0...4 do
+      for c in 0...4 do
+        assert_in_delta( m0.getElement(r,c), m1.getElement(r,c), @tolerance )
+      end
+    end
+  end
+
   def test_lookAtRH
     pEye = RVec3.new( 10, 10, 10 )
     vDir = ( pEye - RVec3.new(0,0,0) ).normalize! # staring at (0,0,0)
@@ -548,7 +571,7 @@ class TC_RMtx4 < Minitest::Test
 
     for r in 0...4 do
       for c in 0...4 do
-        assert_in_delta( m2.getElement(r,c), m2.getElement(r,c), @tolerance )
+        assert_in_delta( m2.getElement(r,c), m3.getElement(r,c), @tolerance )
       end
     end
 
@@ -564,6 +587,67 @@ class TC_RMtx4 < Minitest::Test
                     0.0,                0.0,               -1.0, 0.0 )
 
     m5 = RMtx4.new.perspectiveOffCenterRH( left, right, bottom, top, z_n, z_f, true )
+
+    for r in 0...4 do
+      for c in 0...4 do
+        assert_in_delta( m4.getElement(r,c), m5.getElement(r,c), @tolerance )
+      end
+    end
+  end
+
+  def test_perspectiveLH
+    left  = -640.0
+    right =  640.0
+    bottom = -360.0
+    top    =  360.0
+    z_n = 1.0
+    z_f = 1000.0
+    width = right - left
+    height = top - bottom
+    aspect = width/height
+
+    # RMtx4#perspectiveLH
+    m0 = RMtx4.new( 2*z_n/width, 0.0,          0.0,                  0.0,
+                    0.0,         2*z_n/height, 0.0,                  0.0,
+                    0.0,         0.0,          -(z_f+z_n)/(z_f-z_n), 2.0*z_f*z_n / (z_f-z_n),
+                    0.0,         0.0,          1.0,                  0.0 )
+    m1 = RMtx4.new.perspectiveLH( width, height, z_n, z_f, true )
+
+    for r in 0...4 do
+      for c in 0...4 do
+        assert_in_delta( m0.getElement(r,c), m1.getElement(r,c), @tolerance )
+      end
+    end
+
+    # RMtx4#perspectiveFovLH
+
+    # [NOTE] tan(fovy/2) == (height/2)/z_n
+    fovy = 2.0 * Math::atan( (height/2.0) / z_n )
+    f = 1.0/Math::tan( fovy/2.0 )
+
+    m2 = RMtx4.new( f/aspect, 0.0,  0.0,                 0.0,
+                    0.0,      f,    0.0,                 0.0,
+                    0.0,      0.0,  (z_f+z_n)/(z_n-z_f), -2*z_f*z_n/(z_n-z_f),
+                    0.0,      0.0,  1.0,                 0.0 )
+    m3 = RMtx4.new.perspectiveFovLH( fovy, aspect, z_n, z_f, true );
+    for r in 0...4 do
+      for c in 0...4 do
+        assert_in_delta( m2.getElement(r,c), m3.getElement(r,c), @tolerance )
+      end
+    end
+
+    # RMtx4#perspectiveOffCenterLH
+
+    a = (right+left)/(right-left)
+    b = (top+bottom)/(top-bottom)
+    c = -(z_f+z_n)/(z_f-z_n)
+    d = -2.0*z_f*z_n/(z_f-z_n)
+    m4 = RMtx4.new( 2*z_n/(right-left), 0.0,                -a,   0.0,
+                    0.0,                2*z_n/(top-bottom), -b,   0.0,
+                    0.0,                0.0,                 c,   -d,
+                    0.0,                0.0,                 1.0, 0.0 )
+
+    m5 = RMtx4.new.perspectiveOffCenterLH( left, right, bottom, top, z_n, z_f, true )
 
     for r in 0...4 do
       for c in 0...4 do
@@ -608,6 +692,49 @@ class TC_RMtx4 < Minitest::Test
                     0.0,              0.0,              -2.0/(z_f-z_n), tz,
                     0.0,              0.0,               0.0,           1.0 )
     m3 = RMtx4.new.orthoOffCenterRH( left, right, bottom, top, z_n, z_f, true )
+
+    for r in 0...4 do
+      for c in 0...4 do
+        assert_in_delta( m2.getElement(r,c), m3.getElement(r,c), @tolerance )
+      end
+    end
+  end
+
+  def test_orthoLH
+    left  = -640.0
+    right =  640.0
+    bottom = -360.0
+    top    =  360.0
+    z_n = 1.0
+    z_f = 1000.0
+    width = right - left
+    height = top - bottom
+
+    # RMtx4#orthoLH
+    tx = -(right+left)/width
+    ty = -(top+bottom)/height
+    tz = -(z_f+z_n)/(z_f-z_n)
+    m0 = RMtx4.new( 2.0/width, 0.0,         0.0,           tx,
+                    0.0,       2.0/height,  0.0,           ty,
+                    0.0,       0.0,         2.0/(z_f-z_n), tz,
+                    0.0,       0.0,         0.0,           1.0 )
+    m1 = RMtx4.new.orthoLH( width, height, z_n, z_f, true )
+
+    for r in 0...4 do
+      for c in 0...4 do
+        assert_in_delta( m0.getElement(r,c), m1.getElement(r,c), @tolerance )
+      end
+    end
+
+    # RMtx4#orthoOffCenterLH
+    tx = -(right+left)/(right-left)
+    ty = -(top+bottom)/(top-bottom)
+    tz = -(z_f+z_n)/(z_f-z_n)
+    m2 = RMtx4.new( 2.0/(right-left), 0.0,               0.0,           tx,
+                    0.0,              2.0/(top-bottom),  0.0,           ty,
+                    0.0,              0.0,               2.0/(z_f-z_n), tz,
+                    0.0,              0.0,               0.0,           1.0 )
+    m3 = RMtx4.new.orthoOffCenterLH( left, right, bottom, top, z_n, z_f, true )
 
     for r in 0...4 do
       for c in 0...4 do
