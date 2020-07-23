@@ -507,8 +507,8 @@ RMtx4PerspectiveOffCenterLH( RMtx4* out, rmReal left, rmReal right, rmReal botto
     SET_ELEMENT( out, 0, 2, -A );
     SET_ELEMENT( out, 1, 1, 2*znear/(top-bottom) );
     SET_ELEMENT( out, 1, 2, -B );
-    SET_ELEMENT( out, 2, 2, C );
-    SET_ELEMENT( out, 2, 3, -D );
+    SET_ELEMENT( out, 2, 2, -C );
+    SET_ELEMENT( out, 2, 3,  D );
     SET_ELEMENT( out, 3, 2, 1.0f );
 }
 

@@ -563,10 +563,10 @@ class TC_RMtx4 < Minitest::Test
     fovy = 2.0 * Math::atan( (height/2.0) / z_n )
     f = 1.0/Math::tan( fovy/2.0 )
 
-    m2 = RMtx4.new( f/aspect, 0.0,  0.0,                 0.0,
-                    0.0,      f,    0.0,                 0.0,
-                    0.0,      0.0,  (z_f+z_n)/(z_n-z_f), 2*z_f*z_n/(z_n-z_f),
-                    0.0,      0.0, -1.0,                 0.0 )
+    m2 = RMtx4.new( f/aspect, 0.0,  0.0,                   0.0,
+                    0.0,      f,    0.0,                   0.0,
+                    0.0,      0.0,  -(z_f+z_n)/(z_f-z_n), -2*z_f*z_n/(z_f-z_n),
+                    0.0,      0.0,  -1.0,                  0.0 )
     m3 = RMtx4.new.perspectiveFovRH( fovy, aspect, z_n, z_f, true );
 
     for r in 0...4 do
@@ -609,7 +609,7 @@ class TC_RMtx4 < Minitest::Test
     # RMtx4#perspectiveLH
     m0 = RMtx4.new( 2*z_n/width, 0.0,          0.0,                  0.0,
                     0.0,         2*z_n/height, 0.0,                  0.0,
-                    0.0,         0.0,          -(z_f+z_n)/(z_f-z_n), 2.0*z_f*z_n / (z_f-z_n),
+                    0.0,         0.0,          (z_f+z_n)/(z_f-z_n), -2.0*z_f*z_n / (z_f-z_n),
                     0.0,         0.0,          1.0,                  0.0 )
     m1 = RMtx4.new.perspectiveLH( width, height, z_n, z_f, true )
 
@@ -627,7 +627,7 @@ class TC_RMtx4 < Minitest::Test
 
     m2 = RMtx4.new( f/aspect, 0.0,  0.0,                 0.0,
                     0.0,      f,    0.0,                 0.0,
-                    0.0,      0.0,  (z_f+z_n)/(z_n-z_f), -2*z_f*z_n/(z_n-z_f),
+                    0.0,      0.0,  (z_f+z_n)/(z_f-z_n), -2.0*z_f*z_n/(z_f-z_n),
                     0.0,      0.0,  1.0,                 0.0 )
     m3 = RMtx4.new.perspectiveFovLH( fovy, aspect, z_n, z_f, true );
     for r in 0...4 do
@@ -644,7 +644,7 @@ class TC_RMtx4 < Minitest::Test
     d = -2.0*z_f*z_n/(z_f-z_n)
     m4 = RMtx4.new( 2*z_n/(right-left), 0.0,                -a,   0.0,
                     0.0,                2*z_n/(top-bottom), -b,   0.0,
-                    0.0,                0.0,                 c,   -d,
+                    0.0,                0.0,                -c,   d,
                     0.0,                0.0,                 1.0, 0.0 )
 
     m5 = RMtx4.new.perspectiveOffCenterLH( left, right, bottom, top, z_n, z_f, true )

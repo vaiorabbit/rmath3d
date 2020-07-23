@@ -1960,8 +1960,8 @@ module RMath3D
       setElement( 0, 2, -a )
       setElement( 1, 1, 2*znear/(top-bottom) )
       setElement( 1, 2, -b )
-      setElement( 2, 2, c )
-      setElement( 2, 3, -d )
+      setElement( 2, 2, -c )
+      setElement( 2, 3, d )
       setElement( 3, 2, 1.0 )
 
       return self
