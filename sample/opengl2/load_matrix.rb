@@ -42,7 +42,7 @@ class App
   def reshape( width, height )
     glViewport( 0, 0, width, height )
     glMatrixMode( GL_PROJECTION )
-    @mtxProj.perspectiveFovRH( 30.0*Math::PI/180.0, width.to_f/height.to_f, 0.1, 1000.0 )
+    @mtxProj.perspectiveFovRH( 30.0*Math::PI/180.0, width.to_f/height.to_f, 0.1, 1000.0, true )
     glLoadMatrix( @mtxProj )
 
     @window_width  = width
@@ -74,7 +74,7 @@ class App
     @at  = RVec3.new(0.0,  0.0,  0.0)
     @up  = RVec3.new(0.0,  1.0,  0.0)
     @mtxLookAt = RMtx4.new.lookAtRH( @eye, @at, @up )
-    @mtxProj = RMtx4.new.perspectiveFovRH( 30.0*Math::PI/180.0, @window_width.to_f/@window_height.to_f, 0.1, 1000.0 )
+    @mtxProj = RMtx4.new.perspectiveFovRH( 30.0*Math::PI/180.0, @window_width.to_f/@window_height.to_f, 0.1, 1000.0, true )
 
     @light_pos = [2.5,0,5,1]
     @light_diffuse  = [1,1,1,1]

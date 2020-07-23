@@ -3,6 +3,536 @@ module RMath3D
   TOLERANCE = 1.0e-15
 
   #
+  # Document-class: RMath3D::RMtx2
+  # provies 2x2 matrix arithmetic.
+  #
+  # <b>Notice</b>
+  # * elements are stored in column-major order.
+  #
+  class RMtx2
+
+    #
+    # call-seq:
+    #   RMtx2.new -> ((1,0),(0,1))
+    #   RMtx2.new(e) -> ((e,e), (e,e))
+    #   RMtx2.new( other ) : Copy Constructor
+    #   RMtx2.new( e0, e1, e2, e3 ) -> ((e0,e1), (e2,e3))
+    #
+    # Creates a new 2x2 matrix.
+    #
+    def initialize( *a )
+      # [NOTE] elemetns are stored in column-major order.
+      @e = []
+      case a.length
+      when 0
+        @e = [ 0.0, 0.0,
+               0.0, 0.0 ]
+      when 1
+        case a[0]
+        when Float, Integer
+          @e = [ a[0], a[0],
+                 a[0], a[0] ]
+        when RMtx2
+          # Copy Constructor
+          @e = [ a[0].e00, a[0].e10,
+                 a[0].e01, a[0].e11 ]
+        else
+          raise TypeError, "RMtx2#initialize : Unknown type #{a[0].class}."
+          return nil
+        end
+      when 4
+        # Element-wise setter
+        for row in 0...2 do
+          for col in 0...2 do
+            index = 2*row + col
+            case a[index]
+            when Float, Integer
+              setElement( row, col, a[index] )
+            else
+              raise TypeError, "RMtx2#initialize : Unknown type #{a[0].class}."
+              return nil
+            end
+          end
+        end
+      else
+        raise RuntimeError, "RMtx2#initialize : wrong # of arguments (#{a.length})"
+        return nil
+      end
+
+      return self
+    end
+
+    #
+    # call-seq: to_s
+    #
+    # Returns human-readable string.
+    #
+    def to_s
+      "( #{@e[0]}, #{@e[2]} )\n" +
+      "( #{@e[1]}, #{@e[3]} )\n"
+    end
+
+    #
+    # call-seq: to_a
+    #
+    # Returns its elements as a new Array.
+    #
+    def to_a
+      return @e
+    end
+
+    #
+    # call-seq: coerse(other)
+    #
+    # Resolves type mismatch.
+    #
+    def coerce
+      case arg
+      when Float, Integer
+        return [ self, arg ]
+      else
+        raise TypeError, "RMtx2#coerce : #{arg.self} can't be coerced into  #{self.class}."
+        return nil
+      end
+    end
+
+    #
+    # call-seq: setElements( e0, e1, e2, e3 )
+    #
+    # Stores given 4 new values.
+    #
+    def setElements( *a )
+      if a.length != 4
+        raise RuntimeError, "RMtx2#setElements : wrong # of arguments (#{a.length})"
+        return nil
+      end
+
+      for row in 0...2 do
+        for col in 0...2 do
+          index = 2*row + col
+          setElement( row, col, a[index] )
+        end
+      end
+    end
+
+    #
+    # call-seq: [row,col]= value
+    #
+    # Stores +value+ at (+row+,+col+).
+    #
+    def []=(row,col,value)
+      # [NOTE] elemetns are stored in column-major order.
+      @e[col*2+row] = value
+    end
+    alias_method :setElement, :'[]='
+
+    #
+    # call-seq: [row,col] -> value
+    #
+    # Returns the element at (+row+,+col+).
+    #
+    def [](row,col)
+      # [NOTE] elemetns are stored in column-major order.
+      return @e[col*2+row]
+    end
+    alias_method :getElement, :'[]'
+
+    # Returns the element at row 0 and column 0.
+    def e00() getElement(0,0) end
+    # Returns the element at row 0 and column 1.
+    def e01() getElement(0,1) end
+    # Returns the element at row 1 and column 0.
+    def e10() getElement(1,0) end
+    # Returns the element at row 1 and column 1.
+    def e11() getElement(1,1) end
+
+    # Replaces the element at row 0 and column 0 by +value+.
+    def e00=(value) setElement(0,0,value) end
+    # Replaces the element at row 0 and column 1 by +value+.
+    def e01=(value) setElement(0,1,value) end
+    # Replaces the element at row 1 and column 0 by +value+.
+    def e10=(value) setElement(1,0,value) end
+    # Replaces the element at row 1 and column 1 by +value+.
+    def e11=(value) setElement(1,1,value) end
+
+
+    #
+    # call-seq: mtx2.getRow(r) -> RVec2
+    #
+    # Returns +r+-th row vector.
+    #
+    def getRow( row )
+      return RVec2.new( self[row,0], self[row,1] )
+    end
+
+    #
+    # call-seq: mtx2.getColumn(c) -> RVec2
+    #
+    # Returns +c+-th column vector.
+    #
+    def getColumn( column )
+      return RVec2.new( self[0,column], self[1,column] )
+    end
+
+    #
+    # call-seq: mtx2.setRow(v,r)
+    #
+    # Returns sets +r+-th row by vector +v+.
+    #
+    def setRow( v, row )
+      self[row,0] = v.x
+      self[row,1] = v.y
+    end
+
+    #
+    # call-seq: mtx2.setColumn(v,c)
+    #
+    # Returns sets +c+-th column by vector +v+.
+    #
+    def setColumn( v, column )
+      self[0,column] = v.x
+      self[1,column] = v.y
+    end
+
+    #
+    # call-seq: setZero
+    #
+    # Clears all elements by 0.0
+    #
+    def setZero
+      4.times do |i|
+        @e[i] = 0.0
+      end
+      return self
+    end
+
+    #
+    # call-seq: setIdentity
+    #
+    # Sets as identity matrix.
+    #
+    def setIdentity
+      for row in 0...2 do
+        for col in 0...2 do
+          index = 2*row + col
+          if ( row == col )
+            setElement( row, col, 1.0 )
+          else
+            setElement( row, col, 0.0 )
+          end
+        end
+      end
+      return self
+    end
+
+    #
+    # call-seq: getDeterminant -> determinant
+    #
+    # Calculates determinant.
+    #
+    def getDeterminant
+      e00 * e11 - e01 * e10
+    end
+
+    #
+    # call-seq: getTransposed
+    #
+    # Returns transposed matrix.
+    #
+    def getTransposed
+      return RMtx2.new( @e[0], @e[1],
+                        @e[2], @e[3] )
+    end
+
+    #
+    # call-seq: transpose!
+    #
+    # Transposeas its elements.
+    #
+    def transpose!
+      @e[1], @e[2] = @e[2], @e[1]
+    end
+
+    #
+    # call-seq: getInverse -> inverse
+    #
+    # Returns the inverse.
+    #
+    def getInverse
+      det = getDeterminant()
+
+      if ( det.abs < TOLERANCE )
+        raise RuntimeError, "RMtx2#getInverse : det.abs < TOLERANCE"
+        return nil
+      end
+
+      result = RMtx2.new
+
+      result.e00 =  self.e11
+      result.e01 = -self.e01
+
+      result.e10 = -self.e10
+      result.e11 =  self.e00
+
+      d = 1.0 / det
+
+      result.mul!( d )
+
+      return result
+    end
+
+    #
+    # call-seq: invert! -> self
+    #
+    # Makes itself as the inverse of the original matrix.
+    #
+    def invert!
+      det = getDeterminant()
+
+      if ( det.abs < TOLERANCE )
+        raise RuntimeError, "RMtx2#invert! : det.abs < TOLERANCE"
+        return nil
+      end
+
+      elements = Array.new( 4 )
+
+      elements[2*0+0] =  self.e11
+      elements[2*0+1] = -self.e01
+
+      elements[2*1+0] = -self.e10
+      elements[2*1+1] =  self.e00
+
+      d = 1.0 / det
+
+      setElement( 0, 0, d * elements[2*0+0] )
+      setElement( 0, 1, d * elements[2*0+1] )
+
+      setElement( 1, 0, d * elements[2*1+0] )
+      setElement( 1, 1, d * elements[2*1+1] )
+
+      return self
+    end
+
+    #
+    # call-seq: rotation(radian) -> self
+    #
+    # Makes a matrix that rotates around the z-axis.
+    #
+    def rotation( radian )
+      s = Math.sin( radian )
+      c = Math.cos( radian )
+
+      setIdentity()
+      self.e00 =  c
+      self.e01 = -s
+      self.e10 =  s
+      self.e11 =  c
+
+      return self
+    end
+
+    #
+    # call-seq: scaling(sx,sy) -> self
+    #
+    # Makes itself as a scaling matrix.
+    #
+    def scaling( sx, sy )
+      setIdentity()
+      setElement( 0, 0, sx )
+      setElement( 1, 1, sy )
+
+      return self
+    end
+
+    #
+    # call-seq: +
+    #
+    # +mtx : Unary plus operator.
+    #
+    def +@
+      return self
+    end
+
+    #
+    # call-seq: -
+    #
+    # -mtx : Unary minus operator.
+    #
+    def -@
+      return RMtx2.new( self * -1.0 )
+    end
+
+    #
+    # call-seq: +
+    #
+    # mtx1 + mtx2 : Binary plus operator.
+    #
+    def +( arg )
+      if ( arg.class != RMtx2 )
+        raise TypeError, "RMtx2#+(arg) : Unknown type #{arg.class} given as RMtx2."
+        return nil
+      end
+
+      result = RMtx2.new
+      for row in 0...2 do
+        for col in 0...2 do
+          result.setElement( row, col, getElement(row,col) + arg.getElement(row,col) )
+        end
+      end
+
+      return result
+    end
+
+    #
+    # call-seq: -
+    #
+    # mtx1 - mtx2 : Binary minus operator.
+    #
+    def -( arg )
+      if ( arg.class != RMtx2 )
+        raise TypeError, "RMtx2#-(arg) : Unknown type #{arg.class} given as RMtx2."
+        return nil
+      end
+
+      result = RMtx2.new
+      for row in 0...2 do
+        for col in 0...2 do
+          result.setElement( row, col, getElement(row,col) - arg.getElement(row,col) )
+        end
+      end
+
+      return result
+    end
+
+    #
+    # call-seq: *
+    #
+    # mtx1 * mtx2 : Binary multiply operator.
+    #
+    def *( arg )
+      case arg
+      when Float, Integer
+        return RMtx2.new( arg*self.e00, arg*self.e01,
+                          arg*self.e10, arg*self.e11 )
+
+      when RMtx2
+        result = RMtx2.new
+        for row in 0...2 do
+          for col in 0...2 do
+            sum = 0.0
+            for i in 0...2 do
+              sum += getElement( row, i ) * arg.getElement( i, col )
+            end
+            result.setElement( row, col, sum )
+          end
+        end
+        return result
+
+      else
+        raise TypeError, "RMtx2#*(arg) : Unknown type #{arg.class} given."
+        return nil
+      end
+    end
+
+    #
+    # call-seq: ==
+    #
+    # mtx1 == mtx2 : evaluates equality.
+    #
+    def ==( other )
+      if other.class == RMtx2
+        for row in 0...2 do
+          for col in 0...2 do
+            if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
+              return false
+            end
+          end
+        end
+        return true
+      else
+        return false
+      end
+    end
+
+    #
+    # call-seq: mtx1.add!( mtx2 )
+    #
+    # mtx1 += mtx2 : appends the elements of +mtx2+ into corresponding +mtx1+ elements.
+    #
+    def add!( other )
+      if ( other.class != RMtx2 )
+        raise TypeError, "RMtx2#add! : Unknown type #{other.class} given as RMtx2."
+        return nil
+      end
+
+      result = RMtx2.new
+      for row in 0...2 do
+        for col in 0...2 do
+          self.setElement( row, col, getElement(row,col) + other.getElement(row,col) )
+        end
+      end
+
+      return self
+    end
+
+    #
+    # call-seq: mtx1.sub!( mtx2 )
+    #
+    # mtx1 -= mtx2 : subtracts the elements of +mtx2+ from corresponding +mtx1+ elements.
+    #
+    def sub!( other )
+      if ( other.class != RMtx2 )
+        raise TypeError, "RMtx2#sub! : Unknown type #{other.class} given as RMtx2."
+        return nil
+      end
+
+      result = RMtx2.new
+      for row in 0...2 do
+        for col in 0...2 do
+          self.setElement( row, col, getElement(row,col) - other.getElement(row,col) )
+        end
+      end
+
+      return self
+    end
+
+    #
+    # call-seq: mtx1.mul!( mtx2 )
+    #
+    # mtx1 *= mtx2
+    #
+    def mul!( other )
+      case other
+      when Float, Integer
+        self.e00 = other*self.e00
+        self.e01 = other*self.e01
+        self.e10 = other*self.e10
+        self.e11 = other*self.e11
+
+        return self
+      when RMtx2
+        result = RMtx2.new
+        for row in 0...2 do
+          for col in 0...2 do
+            sum = 0.0
+            for i in 0...2 do
+              sum += getElement( row, i ) * other.getElement( i, col )
+            end
+            result.setElement( row, col, sum )
+          end
+        end
+
+        self.e00 = result.e00
+        self.e01 = result.e01
+        self.e10 = result.e10
+        self.e11 = result.e11
+
+        return self
+      end
+    end
+  end
+
+  #
   # Document-class: RMath3D::RMtx3
   # provies 3x3 matrix arithmetic.
   #
@@ -30,7 +560,7 @@ module RMath3D
                0.0, 0.0, 0.0 ]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer
           @e = [ a[0], a[0], a[0],
                  a[0], a[0], a[0],
                  a[0], a[0], a[0] ]
@@ -49,7 +579,7 @@ module RMath3D
           for col in 0...3 do
             index = 3*row + col
             case a[index]
-            when Fixnum, Float
+            when Float, Integer
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx3#initialize : Unknown type #{a[0].class}."
@@ -92,7 +622,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RMtx3#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -568,7 +1098,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return RMtx3.new( arg*self.e00, arg*self.e01, arg*self.e02,
                           arg*self.e10, arg*self.e11, arg*self.e12,
                           arg*self.e20, arg*self.e21, arg*self.e22 )
@@ -598,19 +1128,18 @@ module RMath3D
     # mtx1 == mtx2 : evaluates equality.
     #
     def ==( other )
-      if ( other.class != RMtx3 )
-        raise TypeError, "RMtx3#==(other) : Unknown type #{other.class} given as RMtx3."
-        return nil
-      end
-
-      for row in 0...3 do
-        for col in 0...3 do
-          if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
-            return false
+      if other.class == RMtx3
+        for row in 0...3 do
+          for col in 0...3 do
+            if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
+              return false
+            end
           end
         end
+        return true
+      else
+        return false
       end
-      return true
     end
 
     #
@@ -662,7 +1191,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Fixnum, Float, Bignum
+      when Float, Integer
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e02 = other*self.e02
@@ -730,7 +1259,7 @@ module RMath3D
                0.0, 0.0, 0.0, 0.0 ]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer
           @e = [ a[0], a[0], a[0], a[0],
                  a[0], a[0], a[0], a[0],
                  a[0], a[0], a[0], a[0],
@@ -751,7 +1280,7 @@ module RMath3D
           for col in 0...4 do
             index = 4*row + col
             case a[index]
-            when Fixnum, Float
+            when Float, Integer
               setElement( row, col, a[index] )
             else
               raise TypeError, "RMtx4#initialize : Unknown type #{a[0].class}."
@@ -795,7 +1324,7 @@ module RMath3D
     #
     def coerce
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RMtx4#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -1309,6 +1838,39 @@ module RMath3D
     end
 
     #
+    # call-seq: lookAtLH(eye,at,up) -> self
+    #
+    # Builds a viewing matrix for a left-handed coordinate system from:
+    # * eye position (+eye+: RVec3)
+    # * a point looking at (+at+: RVec3)
+    # * up vector (+up+: RVec3)
+    #
+    def lookAtLH( eye, at, up )
+      setIdentity()
+
+      axis_z = (at - eye).normalize!
+      axis_x = RVec3.cross( up, axis_z ).normalize!
+      axis_y = RVec3.cross( axis_z, axis_x )
+
+      self.e00 = axis_x[0]
+      self.e01 = axis_x[1]
+      self.e02 = axis_x[2]
+      self.e03 = -RVec3.dot( axis_x, eye )
+
+      self.e10 = axis_y[0]
+      self.e11 = axis_y[1]
+      self.e12 = axis_y[2]
+      self.e13 = -RVec3.dot( axis_y, eye )
+
+      self.e20 = axis_z[0]
+      self.e21 = axis_z[1]
+      self.e22 = axis_z[2]
+      self.e23 = -RVec3.dot( axis_z, eye )
+
+      return self
+    end
+
+    #
     # call-seq: lookAtRH(eye,at,up) -> self
     #
     # Builds a viewing matrix for a right-handed coordinate system from:
@@ -1342,37 +1904,42 @@ module RMath3D
     end
 
     #
-    # call-seq: perspectiveRH(width,height,znear,zfar) -> self
+    # call-seq: perspectiveRH(width,height,znear,zfar,ndc_convention) -> self
     #
     # Builds a perspective projection matrix for a right-handed coordinate system from:
     # * View volume width (+width+)
     # * View volume height (+height+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveRH( width, height, znear, zfar )
-      perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar )
+    def perspectiveRH( width, height, znear, zfar, ndc_homogeneous = true)
+      perspectiveOffCenterRH(-width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
       return self
     end
 
     #
-    # call-seq: perspectiveFovRH(fovy,aspect,znear,zfar) -> self
+    # call-seq: perspectiveFovRH(fovy,aspect,znear,zfar,ndc_homogeneous) -> self
     #
     # Builds a perspective projection matrix for a right-handed coordinate system from:
     # * Field of view in y direction (+fovy+ radian)
     # * Aspect ratio (+aspect+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveFovRH( fovy_radian, aspect, znear, zfar )
+    def perspectiveFovRH( fovy_radian, aspect, znear, zfar, ndc_homogeneous = true)
       f = Math::tan( fovy_radian / 2.0 )
       f = 1.0 / f
+
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
+      d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
       setIdentity()
       setElement( 0, 0, f / aspect )
       setElement( 1, 1, f )
-      setElement( 2, 2, (zfar+znear)/(znear-zfar) )
-      setElement( 2, 3, 2*zfar*znear/(znear-zfar) )
+      setElement( 2, 2, c )
+      setElement( 2, 3, d )
       setElement( 3, 2, -1.0 )
       setElement( 3, 3, 0.0 )
 
@@ -1389,12 +1956,13 @@ module RMath3D
     # * Maximum value of the view volume height (+top+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def perspectiveOffCenterRH( left, right, bottom, top, znear, zfar )
+    def perspectiveOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous = true)
       a = (right+left) / (right-left)
       b = (top+bottom) / (top-bottom)
-      c = -(zfar+znear) / (zfar-znear)
-      d = -(2*znear*zfar) / (zfar-znear)
+      c = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -zfar / (zfar-znear)
+      d = ndc_homogeneous ? -(2*znear*zfar) / (zfar-znear) : -(znear*zfar) / (zfar-znear)
 
       setIdentity()
 
@@ -1418,9 +1986,10 @@ module RMath3D
     # * View volume height (+height+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def orthoRH( width, height, znear, zfar )
-      orthoOffCenterRH( -width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar )
+    def orthoRH( width, height, znear, zfar, ndc_homogeneous = true)
+      orthoOffCenterRH( -width/2.0, width/2.0, -height/2.0, height/2.0, znear, zfar, ndc_homogeneous )
       return self
     end
 
@@ -1434,11 +2003,12 @@ module RMath3D
     # * Maximum value of the view volume height (+top+)
     # * Near clip plane distance (+znear+)
     # * Far clip plane distance (+zfar+)
+    # * Set true for the environment with Z coordinate ranges from -1 to +1 (OpenGL), and false otherwise (Direct3D, Metal) (+ndc_homogeneous+)
     #
-    def orthoOffCenterRH( left, right, bottom, top, znear, zfar )
-      tx = (right+left) / (right-left)
-      ty = (top+bottom) / (top-bottom)
-      tz = (zfar+znear) / (zfar-znear)
+    def orthoOffCenterRH( left, right, bottom, top, znear, zfar, ndc_homogeneous = true)
+      tx = -(right+left) / (right-left)
+      ty = -(top+bottom) / (top-bottom)
+      tz = ndc_homogeneous ? -(zfar+znear) / (zfar-znear) : -znear / (zfar-znear)
 
       setIdentity()
 
@@ -1446,7 +2016,7 @@ module RMath3D
       setElement( 0, 3, tx )
       setElement( 1, 1, 2.0/(top-bottom) )
       setElement( 1, 3, ty )
-      setElement( 2, 2, -2.0/(zfar-znear) )
+      setElement( 2, 2, -(ndc_homogeneous ? 2.0 : 1.0)/(zfar-znear) )
       setElement( 2, 3, tz )
 
       return self
@@ -1519,7 +2089,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return RMtx4.new( arg*self.e00, arg*self.e01, arg*self.e02, arg*self.e03,
                           arg*self.e10, arg*self.e11, arg*self.e12, arg*self.e13,
                           arg*self.e20, arg*self.e21, arg*self.e22, arg*self.e23,
@@ -1550,19 +2120,18 @@ module RMath3D
     # mtx1 == mtx2 : evaluates equality.
     #
     def ==( other )
-      if ( other.class != RMtx4 )
-        raise TypeError, "RMtx4#==(other) : Unknown type #{other.class} given as RMtx4."
-        return nil
-      end
-
-      for row in 0...4 do
-        for col in 0...4 do
-          if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
-            return false
+      if other.class == RMtx4
+        for row in 0...4 do
+          for col in 0...4 do
+            if ( (getElement(row,col) - other.getElement(row,col)).abs > TOLERANCE )
+              return false
+            end
           end
         end
+        return true
+      else
+        return false
       end
-      return true
     end
 
     #
@@ -1614,7 +2183,7 @@ module RMath3D
     #
     def mul!( other )
       case other
-      when Fixnum, Float, Bignum
+      when Float, Integer
         self.e00 = other*self.e00
         self.e01 = other*self.e01
         self.e02 = other*self.e02
@@ -1696,7 +2265,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer
           @e = [ a[0], a[0], a[0], a[0] ]
         when RQuat
           @e = [ a[0].x, a[0].y, a[0].z, a[0].w ]
@@ -1707,7 +2276,7 @@ module RMath3D
       when 4
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RQuat#initialize : Unknown type #{elem.class}."
@@ -1727,7 +2296,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )\n"
+      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )"
     end
 
     #
@@ -1746,7 +2315,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RQuat#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -2085,7 +2654,7 @@ module RMath3D
         z = q1w*q2z + q1x*q2y - q1y*q2x + q1z*q2w
         w = q1w*q2w - q1x*q2x - q1y*q2y - q1z*q2z
         return RQuat.new( x, y, z, w )
-      when Fixnum, Float
+      when Float, Integer
         return RQuat.new( @e[0]*arg, @e[1]*arg, @e[2]*arg, @e[3]*arg )
       else
         raise TypeError, "RQuat#* : Unknown type #{arg}."
@@ -2099,16 +2668,15 @@ module RMath3D
     # quat1 == quat2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RQuat
-        raise TypeError, "RQuat#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON &&
-          (z-other.z).abs<=Float::EPSILON &&
-          (w-other.w).abs<=Float::EPSILON
-        return true
+      if other.class == RQuat
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON &&
+            (z-other.z).abs<=Float::EPSILON &&
+            (w-other.w).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -2181,7 +2749,7 @@ module RMath3D
 
         return self
 
-      when Fixnum, Float
+      when Float, Integer
         self.x *= other
         self.y *= other
         self.z *= other
@@ -2276,6 +2844,345 @@ module RMath3D
   end
 
   #
+  # Document-class: RMath3D::RVec2
+  # provies 2 element vector arithmetic.
+  #
+  class RVec2
+
+    #
+    # call-seq:
+    #   RVec2.new -> (0,0)
+    #   RVec2.new(e) -> (e,e)
+    #   RVec2.new( other ) : Copy Constructor
+    #   RVec2.new( e0, e1 ) -> (e0,e1)
+    #
+    # Creates a new 3 element vector.
+    #
+    def initialize( *a )
+      @e = []
+      case a.length
+      when 0
+        @e = [0.0, 0.0]
+      when 1
+        case a[0]
+        when Float, Integer
+          @e = [ a[0], a[0] ]
+        when RVec2
+          @e = [ a[0].x, a[0].y ]
+        else
+          raise TypeError, "RVec2#initialize : Unknown type #{a[0].class}."
+          return nil
+        end
+      when 2
+        a.each_with_index do |elem, index|
+          case elem
+          when Float, Integer
+            @e[index] = elem
+          else
+            raise TypeError, "RVec2#initialize : Unknown type #{elem.class}."
+            return nil
+          end
+        end
+      else
+        raise RuntimeError, "RVec2#initialize : wrong # of arguments (#{a.length})"
+        return nil
+      end
+      return self
+    end
+
+    #
+    # call-seq: to_s
+    #
+    # Returns human-readable string.
+    #
+    def to_s
+      return "( #{@e[0]}, #{@e[1]} )"
+    end
+
+    #
+    # call-seq: to_a
+    #
+    # Returns its elements as a new Array.
+    #
+    def to_a
+      return @e
+    end
+
+    #
+    # call-seq: coerse(other)
+    #
+    # Resolves type mismatch.
+    #
+    def coerce( arg )
+      case arg
+      when Float, Integer
+        return [ self, arg ]
+      else
+        raise TypeError, "RVec2#coerce : #{arg.self} can't be coerced into  #{self.class}."
+        return nil
+      end
+    end
+
+    #
+    # call-seq: setElements( e0, e1 )
+    #
+    # Stores given 2 new values.
+    #
+    def setElements( x, y )
+      self.x = x
+      self.y = y
+    end
+
+    #
+    # call-seq: vec2[i]= value
+    #
+    # Stores +value+ at +i+.
+    #
+    def []=(i,value)
+      @e[i] = value
+    end
+
+    #
+    # call-seq: x= value
+    #
+    # Stores +value+ as +x+.
+    #
+    def x=(value) @e[0] = value end
+
+    #
+    # call-seq: y= value
+    #
+    # Stores +value+ as +y+.
+    #
+    def y=(value) @e[1] = value end
+
+    #
+    # call-seq: vec3[i] -> value
+    #
+    # Returns the element at +i+.
+    #
+    def [](i)
+      @e[i]
+    end
+
+    #
+    # call-seq: x -> value
+    #
+    # Returns the value of +x+.
+    #
+    def x() return @e[0] end
+
+    #
+    # call-seq: y -> value
+    #
+    # Returns the value of +y+.
+    #
+    def y() return @e[1] end
+
+    #
+    # call-seq: getLength
+    #
+    # Returns the Euclidean length.
+    #
+    def getLength
+      return Math.sqrt( @e[0]*@e[0] + @e[1]*@e[1] )
+    end
+
+    #
+    # call-seq: getLengthSq
+    #
+    # Returns the squared Euclidean length.
+    #
+    def getLengthSq
+      return (@e[0]*@e[0] + @e[1]*@e[1]).to_f
+    end
+
+    #
+    # call-seq: RVec2.dot(v_a,v_b) -> value
+    #
+    # Calculates the dot product of +v_a+ and +v_b+.
+    #
+    def RVec2.dot( v1, v2 )
+      return v1.x*v2.x + v1.y*v2.y
+    end
+
+    #
+    # call-seq: RVec2.cross(v_a,v_b) -> value
+    #
+    # Calculates the cross product of +v_a+ and +v_b+.
+    #
+    def RVec2.cross( v1, v2 )
+      return v1.x*v2.y - v1.y*v2.x
+    end
+
+    #
+    # call-seq: transform(mtx2) -> transformed RVec2
+    #
+    # Returns new RVec2 containing the result of the transformation of
+    #  RVec2(self.x,self.y) by +mtx2+ (RMtx2).
+    #
+    def transform( mtx2 )
+      result = RVec2.new
+      result.x = mtx2.e00 * self[0] + mtx2.e01 * self[1]
+      result.y = mtx2.e10 * self[0] + mtx2.e11 * self[1]
+
+      return result
+    end
+
+    #
+    # call-seq: getNormalized -> RVec2
+    #
+    # Returns normalized vector.
+    #
+    def getNormalized
+      l = getLength()
+      l = 1.0/l
+      return RVec2.new( @e[0]*l, @e[1]*l )
+    end
+
+    #
+    # call-seq: normalize! -> self
+    #
+    # Normalizes itself.
+    #
+    def normalize!
+      l = getLength()
+      l = 1.0/l
+      @e[0] *= l
+      @e[1] *= l
+      return self
+    end
+
+    #
+    # call-seq: +
+    #
+    # +vec : Unary plus operator.
+    #
+    def +@
+      return self
+    end
+
+    #
+    # call-seq: -
+    #
+    # -vec : Unary minus operator.
+    #
+    def -@
+      return RVec2.new( -@e[0], -@e[1] )
+    end
+
+    #
+    # call-seq: +
+    #
+    # vec1 + vec2 : Binary plus operator.
+    #
+    def +( arg )
+      if arg.class != RVec2
+        raise TypeError, "RVec2#+ : Unknown type #{arg.class}."
+        return nil
+      end
+      RVec2.new( x+arg.x, y+arg.y )
+    end
+
+    #
+    # call-seq: -
+    #
+    # vec1 - vec2 : Binary minus operator.
+    #
+    def -( arg )
+      if arg.class != RVec2
+        raise TypeError, "RVec2#- : Unknown type #{arg.class}."
+        return nil
+      end
+      RVec2.new( x-arg.x, y-arg.y )
+    end
+
+    #
+    # call-seq: *
+    #
+    # vec1 * vec2 : Binary multiply operator.
+    #
+    def *( arg )
+      case arg
+      when Float, Integer
+        return RVec2.new( @e[0]*arg, @e[1]*arg )
+      else
+        raise TypeError, "RVec2#* : Unknown type #{arg}."
+        return nil
+      end
+    end
+
+    #
+    # call-seq: ==
+    #
+    # vec1 == vec2 : evaluates equality.
+    #
+    def ==( other )
+      if other.class == RVec2
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
+      else
+        return false
+      end
+    end
+
+    #
+    # call-seq: vec1.add!( vec2 )
+    #
+    # vec1 += vec2 : appends the elements of +vec2+ into corresponding +vec1+ elements.
+    #
+    def add!( other )
+      if other.class != RVec2
+        raise TypeError, "RVec2#add! : Unknown type #{other.class}."
+        return nil
+      end
+
+      self.x += other.x
+      self.y += other.y
+
+      return self
+    end
+
+    #
+    # call-seq: vec1.sub!( vec2 )
+    #
+    # vec1 -= vec2 : subtracts the elements of +vec2+ from corresponding +vec1+ elements.
+    #
+    def sub!( other )
+      if other.class != RVec2
+        raise TypeError, "RVec2#sub! : Unknown type #{other.class}."
+        return nil
+      end
+
+      self.x -= other.x
+      self.y -= other.y
+
+      return self
+    end
+
+    #
+    # call-seq: vec1.mul!( vec2 )
+    #
+    # vec1 *= vec2
+    #
+    def mul!( arg )
+      if !(arg.class == Float || arg.class == Integer)
+        raise TypeError, "RVec2#mul! : Unknown type #{arg.class}."
+        return nil
+      end
+
+      self.x *= arg
+      self.y *= arg
+
+      return self
+    end
+  end
+
+  #
   # Document-class: RMath3D::RVec3
   # provies 3 element vector arithmetic.
   #
@@ -2297,7 +3204,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer
           @e = [ a[0], a[0], a[0] ]
         when RVec3
           @e = [ a[0].x, a[0].y, a[0].z ]
@@ -2308,7 +3215,7 @@ module RMath3D
       when 3
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RVec3#initialize : Unknown type #{elem.class}."
@@ -2328,7 +3235,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]}, #{@e[2]} )\n"
+      return "( #{@e[0]}, #{@e[1]}, #{@e[2]} )"
     end
 
     #
@@ -2347,7 +3254,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RVec3#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -2651,9 +3558,9 @@ module RMath3D
       t_z = q.w*self[2] + q.x*self[1] - q.y*self[0]
       t_w =             - q.x*self[0] - q.y*self[1] - q.z*self[2]
 
-      result.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y;
-      result.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x;
-      result.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w;
+      result.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y
+      result.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x
+      result.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w
 
       return result
     end
@@ -2667,9 +3574,9 @@ module RMath3D
       t_z = q.w*self[2] + q.x*self[1] - q.y*self[0]
       t_w =             - q.x*self[0] - q.y*self[1] - q.z*self[2]
 
-      self.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y;
-      self.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x;
-      self.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w;
+      self.x = -t_w*q.x + t_x*q.w - t_y*q.z + t_z*q.y
+      self.y = -t_w*q.y + t_x*q.z + t_y*q.w - t_z*q.x
+      self.z = -t_w*q.z - t_x*q.y + t_y*q.x + t_z*q.w
 
       return self
     end
@@ -2750,7 +3657,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float
+      when Float, Integer
         return RVec3.new( @e[0]*arg, @e[1]*arg, @e[2]*arg )
       else
         raise TypeError, "RVec3#* : Unknown type #{arg}."
@@ -2764,15 +3671,14 @@ module RMath3D
     # vec1 == vec2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RVec3
-        raise TypeError, "RVec3#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON &&
-          (z-other.z).abs<=Float::EPSILON
-        return true
+      if other.class == RVec3
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON &&
+            (z-other.z).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -2820,7 +3726,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( arg )
-      if arg.class != Fixnum && arg.class != Float
+      if !(arg.class == Float || arg.class == Integer)
         raise TypeError, "RVec3#mul! : Unknown type #{arg.class}."
         return nil
       end
@@ -2855,7 +3761,7 @@ module RMath3D
         @e = [0.0, 0.0, 0.0, 0.0]
       when 1
         case a[0]
-        when Fixnum, Float
+        when Float, Integer
           @e = [ a[0], a[0], a[0], a[0] ]
         when RVec3
           @e = [ a[0].x, a[0].y, a[0].z, 0.0 ]
@@ -2868,7 +3774,7 @@ module RMath3D
       when 4
         a.each_with_index do |elem, index|
           case elem
-          when Fixnum, Float
+          when Float, Integer
             @e[index] = elem
           else
             raise TypeError, "RVec4#initialize : Unknown type #{elem.class}."
@@ -2888,7 +3794,7 @@ module RMath3D
     # Returns human-readable string.
     #
     def to_s
-      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )\n"
+      return "( #{@e[0]}, #{@e[1]}, #{@e[2]}, #{@e[3]} )"
     end
 
     #
@@ -2907,7 +3813,7 @@ module RMath3D
     #
     def coerce( arg )
       case arg
-      when Fixnum, Float, Bignum
+      when Float, Integer
         return [ self, arg ]
       else
         raise TypeError, "RVec4#coerce : #{arg.self} can't be coerced into  #{self.class}."
@@ -3197,7 +4103,7 @@ module RMath3D
     #
     def *( arg )
       case arg
-      when Fixnum, Float
+      when Float, Integer
         return RVec4.new( @e[0]*arg, @e[1]*arg, @e[2]*arg, @e[3]*arg )
       else
         raise TypeError, "RVec4#* : Unknown type #{arg}."
@@ -3211,16 +4117,15 @@ module RMath3D
     # vec1 == vec2 : evaluates equality.
     #
     def ==( other )
-      if other.class != RVec4
-        raise TypeError, "RVec4#== : Unknown type #{other.class}."
-        return nil
-      end
-
-      if  (x-other.x).abs<=Float::EPSILON &&
-          (y-other.y).abs<=Float::EPSILON &&
-          (z-other.z).abs<=Float::EPSILON &&
-          (w-other.w).abs<=Float::EPSILON
-        return true
+      if other.class == RVec4
+        if  (x-other.x).abs<=Float::EPSILON &&
+            (y-other.y).abs<=Float::EPSILON &&
+            (z-other.z).abs<=Float::EPSILON &&
+            (w-other.w).abs<=Float::EPSILON
+          return true
+        else
+          return false
+        end
       else
         return false
       end
@@ -3270,7 +4175,7 @@ module RMath3D
     # vec1 *= vec2
     #
     def mul!( other )
-      if other.class != Fixnum && other.class != Float
+      if !(other.class == Float || other.class == Integer)
         raise TypeError, "RVec4#mul! : Unknown type #{other.class}."
         return nil
       end
@@ -3288,7 +4193,7 @@ end
 
 =begin
 RMath : Ruby math module for 3D Applications
-Copyright (c) 2008- vaiorabbit  <http://twitter.com/vaiorabbit>
+Copyright (c) 2008-2020 vaiorabbit  <http://twitter.com/vaiorabbit>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

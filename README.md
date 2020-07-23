@@ -4,18 +4,23 @@
 
 rmath3d is a math module for 3D game programming and computer graphics.
 
-*   Last Update: May 17, 2014
+*   Last Update: Jun 21, 2020
 *   Since: Jul 20, 2008
+
+* rmath3d (C Extension Library Implementation) [![Gem Version](https://badge.fury.io/rb/rmath3d.svg)](https://badge.fury.io/rb/rmath3d) [![Gem](https://img.shields.io/gem/dt/rmath3d.svg)](https://rubygems.org/gems/rmath3d)
+* rmath3d_plain (Pure Ruby Implementation) [![Gem Version](https://badge.fury.io/rb/rmath3d_plain.svg)](https://badge.fury.io/rb/rmath3d_plain) [![Gem](https://img.shields.io/gem/dt/rmath3d_plain.svg)](https://rubygems.org/gems/rmath3d_plain)
 
 ## Features ##
 
 ### Supports frequently-used vector and matrix classes ###
 
+*   RMtx2 (2x2 matrix)
 *   RMtx3 (3x3 matrix)
 *   RMtx4 (4x4 matrix)
 *   RQuat (Quaternion)
-*   RVec3 (3 element vector)
-*   RVec4 (4 element vector)
+*   RVec2 (2-element vector)
+*   RVec3 (3-element vector)
+*   RVec4 (4-element vector)
 
 ### Two implementations that are interchangeable with each other ###
 
@@ -33,6 +38,9 @@ Notice: This library provides native extension. You must setup develop environme
         *   I used: DevKit-mingw64-32-4.7.2-20130224-1151-sfx.exe
         *   Unpack the archive -> "> ruby dk.rb init" -> edit config.yml (just add your ruby foldier) -> "> ruby dk.rb install" 
         *   Ref.: http://blog.mattwynne.net/2010/10/12/installing-ruby-gems-with-native-extensions-on-windows/
+    *   ruby 2.2.2p95 (2015-04-13 revision 50295) [x86_64-darwin14]
+    *   Ruby 1.9.3 and prior versions are no longer supported.
+        *   Ref.: https://www.ruby-lang.org/en/news/2015/02/23/support-for-ruby-1-9-3-has-ended/
 
 ## Building rmath3d.{so|bundle} ##
 

@@ -1,10 +1,12 @@
-#ifndef RMATH_H_INCLUDED
-#define RMATH_H_INCLUDED
+#ifndef RMATH3D_H_INCLUDED
+#define RMATH3D_H_INCLUDED
 
 #include "RType.h"
+#include "RVec2.h"
 #include "RVec3.h"
 #include "RVec4.h"
 #include "RQuat.h"
+#include "RMtx2.h"
 #include "RMtx3.h"
 #include "RMtx4.h"
 
@@ -12,7 +14,7 @@
 
 /*
 RMath : Ruby math module for 3D Applications
-Copyright (c) 2008- vaiorabbit  <http://twitter.com/vaiorabbit>
+Copyright (c) 2008-2020 vaiorabbit  <http://twitter.com/vaiorabbit>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
